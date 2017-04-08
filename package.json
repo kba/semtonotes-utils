@@ -1,0 +1,17 @@
+{
+  "name": "semtonotes-utils",
+  "version": "0.0.1",
+  "description": "Utility methods around SemToNotes",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap *.test.js"
+  },
+  "repository": "github:kba/semtonotes-utils",
+  "bugs": "https://github.com/kba/semtonotes-utils/issues",
+  "homepage": "https://github.com/kba/semtonotes-utils/tree/master/anno-config#readme",
+  "author": "kba",
+  "license": "MIT",
+  "dependencies": {
+    "semtonotes-client": "0.0.3"
+  }
+}
