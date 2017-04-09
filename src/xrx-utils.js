@@ -62,6 +62,15 @@ module.exports = class XrxUtils {
     }
 
     /**
+     * #### `createShape(shapeType, image)`
+     */
+    static createShape(shapeType, image) {
+        if (!(shapeType in xrx.shape))
+            throw new Error(`No such shape ${shapeType}`)
+        return new xrx.shape[shapeType](image)
+    }
+
+    /**
      * #### `drawFromSvg(svgString, drawing)`
      *
      * Translate `svgString`, a string containing SVG, to shapes and draw them

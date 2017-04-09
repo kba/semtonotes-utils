@@ -4,7 +4,7 @@
   "description": "Utility methods around SemToNotes",
   "main": "index.js",
   "scripts": {
-    "test": "tap *.test.js"
+    "XX test": "tap *.test.js"
   },
   "repository": "github:kba/semtonotes-utils",
   "bugs": "https://github.com/kba/semtonotes-utils/issues",
