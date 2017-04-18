@@ -62,9 +62,15 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `createShape(shapeType, image)`
+     * #### `createShape(shapeType, image, options={})`
+     *
+     * Options:
+     * - `@param string shapeType` Shape Type, `Rectangle` or `Polygon`
+     * - `@param xrx.drawing.Drawing image` the SemToNotes canvas to create the shape in
+     * - `@param Object options` Options.
+     *
      */
-    static createShape(shapeType, image) {
+    static createShape(shapeType, image, options={}) {
         if (!(shapeType in xrx.shape))
             throw new Error(`No such shape ${shapeType}`)
         return new xrx.shape[shapeType](image)
