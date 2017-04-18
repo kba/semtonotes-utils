@@ -1,4 +1,4 @@
-const {xrx, goog} = require('semtonotes-client')
+const xrx = require('semtonotes-client')
 const CoordUtils = require('./coord-utils')
 
 function propToGetter(prop) { return 'get' + prop.substr(0,1).toUpperCase() + prop.substr(1) }
@@ -11,17 +11,24 @@ function propToSetter(prop) { return 'set' + prop.substr(0,1).toUpperCase() + pr
 module.exports = class XrxUtils {
 
     /**
-     * #### `applyStyle(objs, styleDef)`
+     * #### `applyStyle(shapes, styleDef)`
      *
      * Apply a set of styles to one or more stylable elements.
-     *
-     * `styleDef` is an object of key-value pairs which map to xrx.shape.Style
+     * 
+     * - `@param {Array|Shape-Like} shapes Stylable SemToNotes elements (shapes, groups...)
+     * - `@param {object} styleDef` is an object of key-value pairs which map to xrx.shape.Style
      * methods
+     * 
+     * ##### Example
+     * 
+     * ```js
+     * XrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
+     * ```
      *
      */
-    static applyStyle(objs, styleDef) {
-        if (!Array.isArray(objs)) objs = [objs]
-        objs.forEach(obj => {
+    static applyStyle(shapes, styleDef) {
+        if (!Array.isArray(shapes)) shapes = [shapes]
+        shapes.forEach(obj => {
             if (!obj) return
             const style = new xrx.shape.Style()
             Object.keys(styleDef).forEach(prop => {
@@ -30,6 +37,7 @@ module.exports = class XrxUtils {
                     if (typeof val === 'object') {
                         XrxUtils.applyStyle(obj[propToGetter(prop)](), val)
                     } else {
+                        console.log("Styling", obj, propToSetter(prop), style)
                         style[propToSetter(prop)](val)
                     }
                 } catch (err) {
@@ -49,8 +57,8 @@ module.exports = class XrxUtils {
      * width/height for non-visible elements.
      */
     static createDrawing(elem, width, height) {
-        var origGetSize = goog.style.getSize;
-        goog.style.getSize = function(origElem) {
+        var origGetSize = xrx.goog.style.getSize;
+        xrx.goog.style.getSize = function(origElem) {
             const origWH = origGetSize(origElem)
             if (elem === origElem && (origWH.width <= 0 || origWH.height <= 0))
                 return {width, height}
@@ -131,7 +139,7 @@ module.exports = class XrxUtils {
      *
      */
     static shapesFromSvg(svgString, drawing) {
-        if (window === undefined) throw new Error("drawFromSvg must be run in a browser")
+        if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
         // const [svgWidth, svgHeight] = ['height', 'width'].map(attr => parseInt(svgRect.getAttribute(attr)))
@@ -180,7 +188,7 @@ module.exports = class XrxUtils {
         if (!thumb || !image) throw new Error("Call 'navigationThumb' with the xrx canvasses for the thumb and the image")
 
         var matrix = image.getViewbox().ctmDump();
-        var trans = new goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+        var trans = new xrx.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
         var scaleX      = Math.sqrt(Math.pow(trans.getScaleX(), 2)+Math.pow(trans.getShearX(), 2));
         var scaleY      = Math.sqrt(Math.pow(trans.getScaleY(), 2)+Math.pow(trans.getShearY(), 2)); /* == scaleX, wenn keine Scherung */
         var thumbWidth  = thumb.getLayerBackground().getImage().getWidth();
