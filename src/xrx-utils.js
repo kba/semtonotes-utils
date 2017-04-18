@@ -37,7 +37,7 @@ module.exports = class XrxUtils {
                     if (typeof val === 'object') {
                         XrxUtils.applyStyle(obj[propToGetter(prop)](), val)
                     } else {
-                        console.log("Styling", obj, propToSetter(prop), style)
+                        // console.log("Styling", obj, propToSetter(prop), style)
                         style[propToSetter(prop)](val)
                     }
                 } catch (err) {
