@@ -62,7 +62,7 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `createShape(shapeType, image, options={})`
+     * #### `createShape(shapeType, image, options)`
      *
      * Options:
      * - `@param string shapeType` Shape Type, `Rectangle` or `Polygon`
@@ -83,34 +83,10 @@ module.exports = class XrxUtils {
      * in `drawing`.
      */
     static drawFromSvg(svgString, drawing) {
-        if (window === undefined) throw new Error("drawFromSvg must be run in a browser")
-        var parser = new window.DOMParser();
-        var svg = parser.parseFromString(svgString, "image/svg+xml");
-        // const [svgWidth, svgHeight] = ['height', 'width'].map(attr => parseInt(svgRect.getAttribute(attr)))
-        const shapes = []
-        Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
-            var xrxRect = new xrx.shape.Rect(drawing);
-            const [x, y, width, height] = ['x', 'y', 'width', 'height'].map(attr => parseFloat(svgRect.getAttribute(attr)))
-            const coords = [
-                [x,         y],
-                [x + width, y],
-                [x + width, y + height],
-                [x,         y + height],
-            ]
-            xrxRect.setCoords(coords)
-            shapes.push(xrxRect)
-        })
-        Array.from(svg.querySelectorAll("polygon")).forEach(svgPolygon => {
-            var xrxPolygon = new xrx.shape.Polygon(drawing);
-            const coords = svgPolygon.getAttribute("points")
-                .split(' ').map(point => point
-                .split(',').map(xy => parseInt(xy)))
-            xrxPolygon.setCoords(coords)
-            shapes.push(xrxPolygon)
-        })
-        drawing.getLayerShape().addShapes(shapes)
+        const group = XrxUtils.shapesFromSvg(svgString, drawing)
+        drawing.getLayerShape().addShapes(group)
         drawing.draw()
-        return shapes
+        return group
     }
 
     /**
@@ -144,6 +120,46 @@ module.exports = class XrxUtils {
         }
         svg.push("</svg>")
         return svg.join('\n')
+    }
+
+    /**
+     * Create a ShapeGroup from the rect/polygon of an SVG.
+     *
+     * - `@param string svgString` SVG as a string
+     * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
+     * - `@returns xrx.shape.ShapeGroup
+     *
+     */
+    static shapesFromSvg(svgString, drawing) {
+        if (window === undefined) throw new Error("drawFromSvg must be run in a browser")
+        var parser = new window.DOMParser();
+        var svg = parser.parseFromString(svgString, "image/svg+xml");
+        // const [svgWidth, svgHeight] = ['height', 'width'].map(attr => parseInt(svgRect.getAttribute(attr)))
+        const shapes = []
+        Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
+            var xrxRect = new xrx.shape.Rect(drawing);
+            const [x, y, width, height] = ['x', 'y', 'width', 'height'].map(attr => parseFloat(svgRect.getAttribute(attr)))
+            const coords = [
+                [x,         y],
+                [x + width, y],
+                [x + width, y + height],
+                [x,         y + height],
+            ]
+            xrxRect.setCoords(coords)
+            shapes.push(xrxRect)
+        })
+        Array.from(svg.querySelectorAll("polygon")).forEach(svgPolygon => {
+            var xrxPolygon = new xrx.shape.Polygon(drawing);
+            const coords = svgPolygon
+                .getAttribute("points").split(' ').map(point =>
+                    point.split(',').map(
+                        xy => parseInt(xy)))
+            xrxPolygon.setCoords(coords)
+            shapes.push(xrxPolygon)
+        })
+        const group = new xrx.shape.ShapeGroup(drawing)
+        group.addChildren(shapes);
+        return group
     }
 
     /**
