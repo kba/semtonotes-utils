@@ -53,18 +53,18 @@ module.exports =  {
     },
 
     /**
-     * #### `coordAbs2Rel(polygon, imgwidth)`
+     * #### `abs2rel(coords, absval)`
      *
-     * TODO
+     * `coords` is a list of float tuples. Multiply every float with 1000 and divide by `absval`
      */
-    coordAbs2Rel (polygon,imgwidth) {
+    abs2rel (coords, absval) {
         var i;
         var polygonrel = [];
-        if (Array.isArray(polygon) && imgwidth > 0) {
-            for (i = 0; i < polygon.length; i++) {
-                var p = polygon[i];
-                var px = p[0] * 1000 / imgwidth;
-                var py = p[1] * 1000 / imgwidth;
+        if (Array.isArray(coords) && absval > 0) {
+            for (i = 0; i < coords.length; i++) {
+                var p = coords[i];
+                var px = p[0] * 1000 / absval;
+                var py = p[1] * 1000 / absval;
                 polygonrel.push([px,py]);
             }
         }
@@ -72,18 +72,18 @@ module.exports =  {
     },
 
     /**
-     * #### `coordRel2Abs(polygon, imgwidth)`
+     * #### `rel2abs(coords, val)`
      *
-     * TODO
+     * `coords` is a list of float tuples. Multiply every float with `val` and divide by 1000
      */
-    coordRel2Abs (polygon,imgwidth) {
+    rel2abs (coords,absval) {
         var i;
         var polygonabs = [];
-        if (Array.isArray(polygon) && imgwidth > 0) {
-            for (i = 0; i < polygon.length; i++) {
-                var p = polygon[i];
-                var px = Math.round(p[0] * imgwidth / 1000);
-                var py = Math.round(p[1] * imgwidth / 1000);
+        if (Array.isArray(coords) && absval > 0) {
+            for (i = 0; i < coords.length; i++) {
+                var p = coords[i];
+                var px = Math.round(p[0] * absval / 1000);
+                var py = Math.round(p[1] * absval / 1000);
                 polygonabs.push([px,py]);
             }
         }

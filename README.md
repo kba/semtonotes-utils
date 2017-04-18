@@ -2,6 +2,8 @@
 
 <!-- BEGIN-MARKDOWN-TOC -->
 * [Installation](#installation)
+	* [Browser](#browser)
+	* [Node.JS / CommonJS](#nodejs--commonjs)
 * [Usage](#usage)
 * [API](#api)
 	* [XrxUtils](#xrxutils)
@@ -16,8 +18,8 @@
 	* [CoordUtils](#coordutils)
 		* [`angleFromMatrix(m00, m01)`](#anglefrommatrixm00-m01)
 		* [`coordIIIF(polygons, imgwidth, imgheight)`](#coordiiifpolygons-imgwidth-imgheight)
-		* [`coordAbs2Rel(polygon, imgwidth)`](#coordabs2relpolygon-imgwidth)
-		* [`coordRel2Abs(polygon, imgwidth)`](#coordrel2abspolygon-imgwidth)
+		* [`abs2rel(coords, absval)`](#abs2relcoords-absval)
+		* [`rel2abs(coords, val)`](#rel2abscoords-val)
 		* [`isRectangle(c)`](#isrectanglec)
 * [Authors](#authors)
 
@@ -92,10 +94,10 @@ Show the viewbox of `image` as a rectangle in `thumb`
 Calculate the angle between two matrices.
 #### `coordIIIF(polygons, imgwidth, imgheight)`
 TODO
-#### `coordAbs2Rel(polygon, imgwidth)`
-TODO
-#### `coordRel2Abs(polygon, imgwidth)`
-TODO
+#### `abs2rel(coords, absval)`
+`coords` is a list of float tuples. Multiply every float with 1000 and divide by `absval`
+#### `rel2abs(coords, val)`
+`coords` is a list of float tuples. Multiply every float with `val` and divide by 1000
 #### `isRectangle(c)`
 Determine whether an array of coordinates is a rectangle.
 
