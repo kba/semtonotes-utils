@@ -100,9 +100,12 @@ module.exports = class XrxUtils {
     /**
      * #### `svgFromShapes(shapes)`
      *
-     * Generate SVG from a list of shapes.
+     * Generate SVG from a list of shapes or a shapeGroup.
      */
     static svgFromShapes(shapes) {
+        if (shapes instanceof xrx.shape.ShapeGroup) {
+            shapes = shapes.getChildren()
+        }
         if (shapes.length === 0)
             console.warn("Should pass at least one shape to svgFromShape or SVG will be empty")
         const svg = ['<?xml version="1.0" encoding="UTF-8" ?>']
