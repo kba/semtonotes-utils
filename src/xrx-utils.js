@@ -1,4 +1,5 @@
 const xrx = require('semtonotes-client')
+const goog = (window && window.goog) ? window.goog : xrx.goog
 const CoordUtils = require('./coord-utils')
 
 function propToGetter(prop) { return 'get' + prop.substr(0,1).toUpperCase() + prop.substr(1) }
@@ -57,8 +58,8 @@ module.exports = class XrxUtils {
      * width/height for non-visible elements.
      */
     static createDrawing(elem, width, height) {
-        var origGetSize = xrx.goog.style.getSize;
-        xrx.goog.style.getSize = function(origElem) {
+        var origGetSize = goog.style.getSize;
+        goog.style.getSize = function(origElem) {
             const origWH = origGetSize(origElem)
             if (elem === origElem && (origWH.width <= 0 || origWH.height <= 0))
                 return {width, height}
@@ -191,7 +192,7 @@ module.exports = class XrxUtils {
         if (!thumb || !image) throw new Error("Call 'navigationThumb' with the xrx canvasses for the thumb and the image")
 
         var matrix = image.getViewbox().ctmDump();
-        var trans = new xrx.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+        var trans = new goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
         var scaleX      = Math.sqrt(Math.pow(trans.getScaleX(), 2)+Math.pow(trans.getShearX(), 2));
         var scaleY      = Math.sqrt(Math.pow(trans.getScaleY(), 2)+Math.pow(trans.getShearY(), 2)); /* == scaleX, wenn keine Scherung */
         var thumbWidth  = thumb.getLayerBackground().getImage().getWidth();
