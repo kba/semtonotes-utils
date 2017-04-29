@@ -1,6 +1,6 @@
 {
   "presets": [
-    ["env", { "modules": "commonjs" }],
+    ["env"],
     "stage-2"
   ],
   "plugins": ["transform-runtime"],
