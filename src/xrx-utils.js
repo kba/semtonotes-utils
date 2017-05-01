@@ -174,7 +174,6 @@ module.exports = class XrxUtils {
      * - `@returns xrx.shape.ShapeGroup`
      *
      */
-    // TODO circle
     // TODO ellipse
     static shapesFromSvg(svgString, drawing, options={}) {
         if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
@@ -233,6 +232,25 @@ module.exports = class XrxUtils {
             }
             xrxPolyline.setCoords(coords)
             shapes.push(xrxPolyline)
+        })
+
+        Array.from(svg.querySelectorAll("circle")).forEach(svgCircle => {
+            const xrxCircle = new xrx.shape.Circle(drawing)
+            const c = [
+                parseFloat(svgCircle.getAttribute('cx')),
+                parseFloat(svgCircle.getAttribute('cy')),
+            ]
+            var r = parseFloat(svgCircle.getAttribute('r'))
+            if (options.relative) {
+                c[0] = c[0] * relWidth
+                c[1] = c[1] * relHeight
+                // TODO
+                r = r * Math.min(relWidth, relHeight)
+            }
+            console.log({c,r})
+            xrxCircle.setCenter(...c)
+            xrxCircle.setRadius(r)
+            shapes.push(xrxCircle)
         })
 
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
