@@ -145,6 +145,9 @@ module.exports = class XrxUtils {
             } else if (shape instanceof xrx.shape.Polyline) {
                 const coords = shape.getCoords()
                 svg.push(`  <polyline points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
+            } else if (shape instanceof xrx.shape.Line) {
+                const coords = shape.getCoords()
+                svg.push(`  <line x1="${coords[0][0]}" y1="${coords[0][1]}" x2="${coords[1][0]}" y2="${coords[1][1]}"/>`)
             } else if (shape instanceof xrx.shape.Ellipse) {
                 const [cx, cy] = shape.getCenter()
                 const [rx, ry] = [shape.getRadiusX(), shape.getRadiusY()]
