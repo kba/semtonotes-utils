@@ -96,9 +96,13 @@ module.exports = class XrxUtils {
      *
      * Translate `svgString`, a string containing SVG, to shapes and draw them
      * in `drawing`.
+     *
+     * - `@param Object options
+     * - `@param Boolean options.relative Load shapes relative to the current drawing
+     *
      */
-    static drawFromSvg(svgString, drawing) {
-        const group = XrxUtils.shapesFromSvg(svgString, drawing)
+    static drawFromSvg(svgString, drawing, options={}) {
+        const group = XrxUtils.shapesFromSvg(svgString, drawing, options)
         drawing.getLayerShape().addShapes(group)
         drawing.draw()
         return group
@@ -109,10 +113,11 @@ module.exports = class XrxUtils {
      *
      * Generate SVG from a list of shapes or a shapeGroup.
      */
-    static svgFromShapes(shapes) {
+    static svgFromShapes(shapes=[]) {
         if (shapes instanceof xrx.shape.ShapeGroup) {
             shapes = shapes.getChildren()
         }
+        if (!Array.isArray(shapes)) shapes = [shapes]
         if (shapes.length === 0)
             console.warn("Should pass at least one shape to svgFromShape or SVG will be empty")
         const svg = ['<?xml version="1.0" encoding="UTF-8" ?>']
@@ -158,18 +163,39 @@ module.exports = class XrxUtils {
      *
      * - `@param string svgString` SVG as a string
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
+     * - `@param Object options
+     * - `@param Boolean options.relative Load shapes relative to the current drawing
      * - `@returns xrx.shape.ShapeGroup
      *
      */
-    static shapesFromSvg(svgString, drawing) {
+    // TODO circle
+    // TODO ellipse
+    // TODO polyline
+    // TODO line
+    static shapesFromSvg(svgString, drawing, options={}) {
         if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
+        options.relative = options.relative || false
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
-        // const [svgWidth, svgHeight] = ['height', 'width'].map(attr => parseInt(svgRect.getAttribute(attr)))
+
+        const [svgWidth, svgHeight] = ['height', 'width'].map(attr =>
+            parseInt(svg.documentElement.getAttribute(attr)))
+        const relWidth = (svgWidth > 0)
+            ? drawing.getLayerBackground().getImage().getWidth() / svgWidth
+            : 1
+        const relHeight = (svgHeight > 0)
+            ? drawing.getLayerBackground().getImage().getHeight() / svgHeight
+            : 1
+
         const shapes = []
         Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
             var xrxRect = new xrx.shape.Rect(drawing);
-            const [x, y, width, height] = ['x', 'y', 'width', 'height'].map(attr => parseFloat(svgRect.getAttribute(attr)))
+            var [x, y, width, height] = ['x', 'y', 'width', 'height']
+                .map(attr => parseFloat(svgRect.getAttribute(attr)))
+            if (options.relative) {
+                [x, y, width, height] =
+                    [x * relWidth, y * relHeight, width * relWidth, height * relHeight]
+            }
             const coords = [
                 [x,         y],
                 [x + width, y],
@@ -180,11 +206,13 @@ module.exports = class XrxUtils {
             shapes.push(xrxRect)
         })
         Array.from(svg.querySelectorAll("polygon")).forEach(svgPolygon => {
-            var xrxPolygon = new xrx.shape.Polygon(drawing);
-            const coords = svgPolygon
+            const xrxPolygon = new xrx.shape.Polygon(drawing);
+            var coords = svgPolygon
                 .getAttribute("points").split(' ').map(point =>
-                    point.split(',').map(
-                        xy => parseInt(xy)))
+                    point.split(',').map(xy => parseInt(xy)))
+            if (options.relative) {
+                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
+            }
             xrxPolygon.setCoords(coords)
             shapes.push(xrxPolygon)
         })
