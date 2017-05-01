@@ -176,8 +176,6 @@ module.exports = class XrxUtils {
      */
     // TODO circle
     // TODO ellipse
-    // TODO polyline
-    // TODO line
     static shapesFromSvg(svgString, drawing, options={}) {
         if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
         options.relative = options.relative || false
@@ -223,6 +221,18 @@ module.exports = class XrxUtils {
             }
             xrxPolygon.setCoords(coords)
             shapes.push(xrxPolygon)
+        })
+
+        Array.from(svg.querySelectorAll("polyline")).forEach(svgPolyline => {
+            const xrxPolyline = new xrx.shape.Polyline(drawing);
+            var coords = svgPolyline
+                .getAttribute("points").split(' ').map(point =>
+                    point.split(',').map(xy => parseInt(xy)))
+            if (options.relative) {
+                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
+            }
+            xrxPolyline.setCoords(coords)
+            shapes.push(xrxPolyline)
         })
 
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
