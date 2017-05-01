@@ -174,7 +174,6 @@ module.exports = class XrxUtils {
      * - `@returns xrx.shape.ShapeGroup`
      *
      */
-    // TODO ellipse
     static shapesFromSvg(svgString, drawing, options={}) {
         if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
         options.relative = options.relative || false
@@ -247,10 +246,31 @@ module.exports = class XrxUtils {
                 // TODO
                 r = r * Math.min(relWidth, relHeight)
             }
-            console.log({c,r})
             xrxCircle.setCenter(...c)
             xrxCircle.setRadius(r)
             shapes.push(xrxCircle)
+        })
+
+        Array.from(svg.querySelectorAll("ellipse")).forEach(svgEllipse => {
+            const xrxEllipse = new xrx.shape.Ellipse(drawing)
+            const c = [
+                parseFloat(svgEllipse.getAttribute('cx')),
+                parseFloat(svgEllipse.getAttribute('cy')),
+            ]
+            const r = [
+                parseFloat(svgEllipse.getAttribute('rx')),
+                parseFloat(svgEllipse.getAttribute('ry')),
+            ]
+            if (options.relative) {
+                c[0] = c[0] * relWidth
+                c[1] = c[1] * relHeight
+                r[0] = r[0] * relWidth
+                r[1] = r[1] * relHeight
+            }
+            xrxEllipse.setCenter(...c)
+            xrxEllipse.setRadiusX(r[0])
+            xrxEllipse.setRadiusY(r[1])
+            shapes.push(xrxEllipse)
         })
 
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
