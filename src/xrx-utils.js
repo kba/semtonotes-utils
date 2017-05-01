@@ -194,6 +194,7 @@ module.exports = class XrxUtils {
             : 1
 
         const shapes = []
+
         Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
             var xrxRect = new xrx.shape.Rect(drawing);
             var [x, y, width, height] = ['x', 'y', 'width', 'height']
@@ -211,6 +212,7 @@ module.exports = class XrxUtils {
             xrxRect.setCoords(coords)
             shapes.push(xrxRect)
         })
+
         Array.from(svg.querySelectorAll("polygon")).forEach(svgPolygon => {
             const xrxPolygon = new xrx.shape.Polygon(drawing);
             var coords = svgPolygon
@@ -222,6 +224,20 @@ module.exports = class XrxUtils {
             xrxPolygon.setCoords(coords)
             shapes.push(xrxPolygon)
         })
+
+        Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
+            const xrxLine = new xrx.shape.Line(drawing)
+            var coords = [['x1', 'y1'], ['x2', 'y2']].map(point => [
+                parseFloat(svgLine.getAttribute(point[0])),
+                parseFloat(svgLine.getAttribute(point[1])),
+            ])
+            if (options.relative) {
+                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
+            }
+            xrxLine.setCoords(coords)
+            shapes.push(xrxLine)
+        })
+
         const group = new xrx.shape.ShapeGroup(drawing)
         group.addChildren(shapes);
         return group
