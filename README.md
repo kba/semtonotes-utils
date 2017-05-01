@@ -55,7 +55,7 @@ const {CoordUtils} = XrxUtils
 #### `applyStyle(shapes, styleDef)`
 Apply a set of styles to one or more stylable elements.
 
-- `@param {Array|Shape-Like} shapes Stylable SemToNotes elements (shapes, groups...)
+- `@param {Array|Shape-Like} shapes` Stylable SemToNotes elements (shapes, groups...)
 - `@param {object} styleDef` is an object of key-value pairs which map to xrx.shape.Style
 methods
 
@@ -75,12 +75,16 @@ Options:
 #### `drawFromSvg(svgString, drawing)`
 Translate `svgString`, a string containing SVG, to shapes and draw them
 in `drawing`.
+- `@param Object options`
+- `@param Boolean options.relative` Load shapes relative to the current drawing
 #### `svgFromShapes(shapes)`
-Generate SVG from a list of shapes.
+Generate SVG from a list of shapes or a shapeGroup.
 Create a ShapeGroup from the rect/polygon of an SVG.
 - `@param string svgString` SVG as a string
 - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
-- `@returns xrx.shape.ShapeGroup
+- `@param Object options`
+- `@param Boolean options.relative` Load shapes relative to the current drawing
+- `@returns xrx.shape.ShapeGroup`
 #### `svgFromDrawing(drawing)`
 Generate SVG from all shapes in a drawing.
 #### `navigationThumb(thumb, image)`

@@ -16,7 +16,7 @@ module.exports = class XrxUtils {
      *
      * Apply a set of styles to one or more stylable elements.
      * 
-     * - `@param {Array|Shape-Like} shapes Stylable SemToNotes elements (shapes, groups...)
+     * - `@param {Array|Shape-Like} shapes` Stylable SemToNotes elements (shapes, groups...)
      * - `@param {object} styleDef` is an object of key-value pairs which map to xrx.shape.Style
      * methods
      * 
@@ -97,8 +97,8 @@ module.exports = class XrxUtils {
      * Translate `svgString`, a string containing SVG, to shapes and draw them
      * in `drawing`.
      *
-     * - `@param Object options
-     * - `@param Boolean options.relative Load shapes relative to the current drawing
+     * - `@param Object options`
+     * - `@param Boolean options.relative` Load shapes relative to the current drawing
      *
      */
     static drawFromSvg(svgString, drawing, options={}) {
@@ -163,9 +163,9 @@ module.exports = class XrxUtils {
      *
      * - `@param string svgString` SVG as a string
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
-     * - `@param Object options
-     * - `@param Boolean options.relative Load shapes relative to the current drawing
-     * - `@returns xrx.shape.ShapeGroup
+     * - `@param Object options`
+     * - `@param Boolean options.relative` Load shapes relative to the current drawing
+     * - `@returns xrx.shape.ShapeGroup`
      *
      */
     // TODO circle
