@@ -36,7 +36,13 @@ module.exports = class XrxUtils {
                 const val = styleDef[prop]
                 try {
                     if (typeof val === 'object') {
-                        XrxUtils.applyStyle(obj[propToGetter(prop)](), val)
+                        // if (obj === 'hoverable') {
+                            // Object.keys(val).forEach(hoverableProp => {
+                                // obj.getHoverable()[propToSetter(hoverableProp)](val[hoverableProp])
+                            // })
+                        // } else {
+                            XrxUtils.applyStyle(obj[propToGetter(prop)](), val)
+                        // }
                     } else {
                         // console.log("Styling", obj, propToSetter(prop), style)
                         style[propToSetter(prop)](val)
@@ -117,8 +123,10 @@ module.exports = class XrxUtils {
         ].join(' '))
         // console.log(shapes)
         for (let shape of shapes) {
-            const coords = shape.getCoords()
-            if (shape instanceof xrx.shape.Rect || CoordUtils.isRectangle(coords)) {
+            if (shape instanceof xrx.shape.Rect
+                || (shape instanceof xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
+            ) {
+                const coords = shape.getCoords()
                 var [minX, minY] = [Number.MAX_VALUE, Number.MAX_VALUE]
                 var [maxX, maxY] = [Number.MIN_VALUE, Number.MIN_VALUE]
                 for (let [x, y] of coords) {
@@ -126,8 +134,19 @@ module.exports = class XrxUtils {
                     ;[minX, minY] = [Math.min(x, minX), Math.min(y, minY)]
                 }
                 svg.push(`  <rect x="${minX}" y="${minY}" width="${maxX - minX}" height="${maxY - minY}"/>`)
-            } else {
+            } else if (shape instanceof xrx.shape.Polygon) {
+                const coords = shape.getCoords()
                 svg.push(`  <polygon points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
+            } else if (shape instanceof xrx.shape.Ellipse) {
+                const [cx, cy] = shape.getCenter()
+                const [rx, ry] = [shape.getRadiusX(), shape.getRadiusY()]
+                svg.push(`  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`)
+            } else if (shape instanceof xrx.shape.Circle) {
+                const [cx, cy] = shape.getCenter()
+                const r = shape.getRadius()
+                svg.push(`  <circle cx="${cx}" cy="${cy}" r="${r}"/>`)
+            } else {
+                console.error("SVG Export not implemented for", shape)
             }
         }
         svg.push("</svg>")
