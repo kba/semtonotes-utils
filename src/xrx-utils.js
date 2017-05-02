@@ -68,7 +68,7 @@ module.exports = class XrxUtils {
      * width/height for non-visible elements.
      */
     createDrawing(elem, width, height) {
-        var origGetSize = goog.style.getSize;
+        var origGetSize = this.goog.style.getSize;
         this.goog.style.getSize = function(origElem) {
             const origWH = origGetSize(origElem)
             if (elem === origElem && (origWH.width <= 0 || origWH.height <= 0))
@@ -122,11 +122,18 @@ module.exports = class XrxUtils {
             shapes = shapes.getChildren()
         }
         if (!Array.isArray(shapes)) shapes = [shapes]
-        if (shapes.length === 0)
+
+        const svg = [
+            '<?xml version="1.0" encoding="UTF-8" ?>',
+            '<svg xmlns="http://www.w3.org/2000/svg" version="1.1"']
+
+        if (shapes.length === 0) {
             console.warn("Should pass at least one shape to svgFromShape or SVG will be empty")
-        const svg = ['<?xml version="1.0" encoding="UTF-8" ?>']
+            svg.push('></svg>')
+            return svg.join('')
+        }
+
         svg.push([
-            `<svg xmlns="http://www.w3.org/2000/svg" version="1.1"`,
             `width="${shapes[0].getDrawing().getLayerBackground().getImage().getWidth()}"`,
             `height="${shapes[0].getDrawing().getLayerBackground().getImage().getHeight()}">`,
         ].join(' '))
@@ -184,14 +191,14 @@ module.exports = class XrxUtils {
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
 
-        const [svgWidth, svgHeight] = ['height', 'width'].map(attr =>
-            parseInt(svg.documentElement.getAttribute(attr)))
-        const relWidth = (svgWidth > 0)
-            ? drawing.getLayerBackground().getImage().getWidth() / svgWidth
-            : 1
-        const relHeight = (svgHeight > 0)
-            ? drawing.getLayerBackground().getImage().getHeight() / svgHeight
-            : 1
+        const svgWidth = svg.documentElement.getAttribute('width')
+        const svgHeight = svg.documentElement.getAttribute('height')
+
+        const imgHeight = drawing.getLayerBackground().getImage().getHeight()
+        const imgWidth = drawing.getLayerBackground().getImage().getWidth()
+
+        const relHeight = (svgHeight > 0) ? imgHeight / svgHeight : 1
+        const relWidth = (svgWidth > 0) ? imgWidth / svgWidth : 1
 
         const shapes = []
 
@@ -200,8 +207,10 @@ module.exports = class XrxUtils {
             var [x, y, width, height] = ['x', 'y', 'width', 'height']
                 .map(attr => parseFloat(svgRect.getAttribute(attr)))
             if (options.relative) {
-                [x, y, width, height] =
-                    [x * relWidth, y * relHeight, width * relWidth, height * relHeight]
+                x = x * relWidth
+                y = y * relHeight
+                width = width * relWidth
+                height = height * relHeight
             }
             const coords = [
                 [x,         y],
