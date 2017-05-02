@@ -53,7 +53,7 @@ npm install semtonotes-utils
 Or via unpkg's cdn:
 
 ```html
-<script src="https://unpkg.com/semtonotes-client@0.1.3"></script>
+<script src="https://unpkg.com/semtonotes-client@0.2.0"></script>
 <script src="https://unpkg.com/semtonotes-utils@0.1.7"></script>
 ```
 
