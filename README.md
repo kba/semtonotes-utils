@@ -41,11 +41,20 @@ Then include the built library in `./dist` and semtonotes as `window.xrx`, eithe
 npm install semtonotes-utils
 ```
 
-## Usage
+## Load in Browser
 
-```js
-const XrxUtils = require('semtonotes-utils')
-const {CoordUtils} = XrxUtils
+```html
+<!-- semtonotes must be loaded before, e.g.
+<script src="https://unpkg.com/semtonotes-client@0.1.3"></script>
+-->
+<script src="path/to/xrx-utils.js"></script>
+```
+
+Or via unpkg's cdn:
+
+```html
+<script src="https://unpkg.com/semtonotes-client@0.1.3"></script>
+<script src="https://unpkg.com/semtonotes-utils@0.1.7"></script>
 ```
 
 ## API

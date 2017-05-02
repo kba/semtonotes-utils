@@ -1,5 +1,3 @@
-const xrx = require('semtonotes-client')
-const goog = (window && window.goog) ? window.goog : xrx.goog
 const CoordUtils = require('./coord-utils')
 
 function propToGetter(prop) { return 'get' + prop.substr(0,1).toUpperCase() + prop.substr(1) }
@@ -10,6 +8,18 @@ function propToSetter(prop) { return 'set' + prop.substr(0,1).toUpperCase() + pr
  *
  */
 module.exports = class XrxUtils {
+
+    constructor(xrx) {
+        if (!window)
+            throw new Error("XrxUtils must be run in a browser")
+        if (!xrx)
+            throw new Error("XrxUtils requires semtonotes. Make sure window.xrx is set")
+        this.xrx = xrx
+
+        if (!window.goog && ! xrx.goog)
+            throw new Error("SemToNotes requires window.goog or xrx.goog")
+        this.goog = window.goog || xrx.goog
+    }
 
     /**
      * #### `applyStyle(shapes, styleDef)`
@@ -23,26 +33,20 @@ module.exports = class XrxUtils {
      * ##### Example
      * 
      * ```js
-     * XrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
+     * xrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
      * ```
      *
      */
-    static applyStyle(shapes, styleDef) {
+    applyStyle(shapes, styleDef) {
         if (!Array.isArray(shapes)) shapes = [shapes]
         shapes.forEach(obj => {
             if (!obj) return
-            const style = new xrx.shape.Style()
+            const style = new this.xrx.shape.Style()
             Object.keys(styleDef).forEach(prop => {
                 const val = styleDef[prop]
                 try {
                     if (typeof val === 'object') {
-                        // if (obj === 'hoverable') {
-                            // Object.keys(val).forEach(hoverableProp => {
-                                // obj.getHoverable()[propToSetter(hoverableProp)](val[hoverableProp])
-                            // })
-                        // } else {
-                            XrxUtils.applyStyle(obj[propToGetter(prop)](), val)
-                        // }
+                        this.applyStyle(obj[propToGetter(prop)](), val)
                     } else {
                         // console.log("Styling", obj, propToSetter(prop), style)
                         style[propToSetter(prop)](val)
@@ -63,15 +67,15 @@ module.exports = class XrxUtils {
      * Create a drawing in DOMElement `elem`. Overrides goog.style.getSize with
      * width/height for non-visible elements.
      */
-    static createDrawing(elem, width, height) {
+    createDrawing(elem, width, height) {
         var origGetSize = goog.style.getSize;
-        goog.style.getSize = function(origElem) {
+        this.goog.style.getSize = function(origElem) {
             const origWH = origGetSize(origElem)
             if (elem === origElem && (origWH.width <= 0 || origWH.height <= 0))
                 return {width, height}
             return origWH
         }
-        const ret = new xrx.drawing.Drawing(elem)
+        const ret = new this.xrx.drawing.Drawing(elem)
         if (!ret.getEngine().isAvailable()) throw new Error("No Engine available :-( Much sadness")
         return ret
     }
@@ -85,10 +89,10 @@ module.exports = class XrxUtils {
      * - `@param Object options` Options.
      *
      */
-    static createShape(shapeType, image, options={}) {
-        if (!(shapeType in xrx.shape))
+    createShape(shapeType, image, options={}) {
+        if (!(shapeType in this.xrx.shape))
             throw new Error(`No such shape ${shapeType}`)
-        return new xrx.shape[shapeType](image)
+        return new this.xrx.shape[shapeType](image)
     }
 
     /**
@@ -101,8 +105,8 @@ module.exports = class XrxUtils {
      * - `@param Boolean options.relative` Load shapes relative to the current drawing
      *
      */
-    static drawFromSvg(svgString, drawing, options={}) {
-        const group = XrxUtils.shapesFromSvg(svgString, drawing, options)
+    drawFromSvg(svgString, drawing, options={}) {
+        const group = this.shapesFromSvg(svgString, drawing, options)
         drawing.getLayerShape().addShapes(group)
         drawing.draw()
         return group
@@ -113,8 +117,8 @@ module.exports = class XrxUtils {
      *
      * Generate SVG from a list of shapes or a shapeGroup.
      */
-    static svgFromShapes(shapes=[]) {
-        if (shapes instanceof xrx.shape.ShapeGroup) {
+    svgFromShapes(shapes=[]) {
+        if (shapes instanceof this.xrx.shape.ShapeGroup) {
             shapes = shapes.getChildren()
         }
         if (!Array.isArray(shapes)) shapes = [shapes]
@@ -128,8 +132,9 @@ module.exports = class XrxUtils {
         ].join(' '))
         // console.log(shapes)
         for (let shape of shapes) {
-            if (shape instanceof xrx.shape.Rect
-                || (shape instanceof xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
+            console.log(shape, this.xrx.shape.Rect, shape instanceof this.xrx.shape.Rect)
+            if (shape instanceof this.xrx.shape.Rect
+                || (shape instanceof this.xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
             ) {
                 const coords = shape.getCoords()
                 var [minX, minY] = [Number.MAX_VALUE, Number.MAX_VALUE]
@@ -139,20 +144,20 @@ module.exports = class XrxUtils {
                     ;[minX, minY] = [Math.min(x, minX), Math.min(y, minY)]
                 }
                 svg.push(`  <rect x="${minX}" y="${minY}" width="${maxX - minX}" height="${maxY - minY}"/>`)
-            } else if (shape instanceof xrx.shape.Polygon) {
+            } else if (shape instanceof this.xrx.shape.Polygon) {
                 const coords = shape.getCoords()
                 svg.push(`  <polygon points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
-            } else if (shape instanceof xrx.shape.Polyline) {
+            } else if (shape instanceof this.xrx.shape.Polyline) {
                 const coords = shape.getCoords()
                 svg.push(`  <polyline points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
-            } else if (shape instanceof xrx.shape.Line) {
+            } else if (shape instanceof this.xrx.shape.Line) {
                 const coords = shape.getCoords()
                 svg.push(`  <line x1="${coords[0][0]}" y1="${coords[0][1]}" x2="${coords[1][0]}" y2="${coords[1][1]}"/>`)
-            } else if (shape instanceof xrx.shape.Ellipse) {
+            } else if (shape instanceof this.xrx.shape.Ellipse) {
                 const [cx, cy] = shape.getCenter()
                 const [rx, ry] = [shape.getRadiusX(), shape.getRadiusY()]
                 svg.push(`  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`)
-            } else if (shape instanceof xrx.shape.Circle) {
+            } else if (shape instanceof this.xrx.shape.Circle) {
                 const [cx, cy] = shape.getCenter()
                 const r = shape.getRadius()
                 svg.push(`  <circle cx="${cx}" cy="${cy}" r="${r}"/>`)
@@ -174,8 +179,7 @@ module.exports = class XrxUtils {
      * - `@returns xrx.shape.ShapeGroup`
      *
      */
-    static shapesFromSvg(svgString, drawing, options={}) {
-        if (window === undefined) throw new Error("shapesFromSvg must be run in a browser")
+    shapesFromSvg(svgString, drawing, options={}) {
         options.relative = options.relative || false
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
@@ -192,7 +196,7 @@ module.exports = class XrxUtils {
         const shapes = []
 
         Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
-            var xrxRect = new xrx.shape.Rect(drawing);
+            var xrxRect = new this.xrx.shape.Rect(drawing);
             var [x, y, width, height] = ['x', 'y', 'width', 'height']
                 .map(attr => parseFloat(svgRect.getAttribute(attr)))
             if (options.relative) {
@@ -210,7 +214,7 @@ module.exports = class XrxUtils {
         })
 
         Array.from(svg.querySelectorAll("polygon")).forEach(svgPolygon => {
-            const xrxPolygon = new xrx.shape.Polygon(drawing);
+            const xrxPolygon = new this.xrx.shape.Polygon(drawing);
             var coords = svgPolygon
                 .getAttribute("points").split(' ').map(point =>
                     point.split(',').map(xy => parseInt(xy)))
@@ -222,7 +226,7 @@ module.exports = class XrxUtils {
         })
 
         Array.from(svg.querySelectorAll("polyline")).forEach(svgPolyline => {
-            const xrxPolyline = new xrx.shape.Polyline(drawing);
+            const xrxPolyline = new this.xrx.shape.Polyline(drawing);
             var coords = svgPolyline
                 .getAttribute("points").split(' ').map(point =>
                     point.split(',').map(xy => parseInt(xy)))
@@ -234,7 +238,7 @@ module.exports = class XrxUtils {
         })
 
         Array.from(svg.querySelectorAll("circle")).forEach(svgCircle => {
-            const xrxCircle = new xrx.shape.Circle(drawing)
+            const xrxCircle = new this.xrx.shape.Circle(drawing)
             const c = [
                 parseFloat(svgCircle.getAttribute('cx')),
                 parseFloat(svgCircle.getAttribute('cy')),
@@ -252,7 +256,7 @@ module.exports = class XrxUtils {
         })
 
         Array.from(svg.querySelectorAll("ellipse")).forEach(svgEllipse => {
-            const xrxEllipse = new xrx.shape.Ellipse(drawing)
+            const xrxEllipse = new this.xrx.shape.Ellipse(drawing)
             const c = [
                 parseFloat(svgEllipse.getAttribute('cx')),
                 parseFloat(svgEllipse.getAttribute('cy')),
@@ -274,7 +278,7 @@ module.exports = class XrxUtils {
         })
 
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
-            const xrxLine = new xrx.shape.Line(drawing)
+            const xrxLine = new this.xrx.shape.Line(drawing)
             var coords = [['x1', 'y1'], ['x2', 'y2']].map(point => [
                 parseFloat(svgLine.getAttribute(point[0])),
                 parseFloat(svgLine.getAttribute(point[1])),
@@ -286,7 +290,7 @@ module.exports = class XrxUtils {
             shapes.push(xrxLine)
         })
 
-        const group = new xrx.shape.ShapeGroup(drawing)
+        const group = new this.xrx.shape.ShapeGroup(drawing)
         group.addChildren(shapes);
         return group
     }
@@ -296,8 +300,8 @@ module.exports = class XrxUtils {
      *
      * Generate SVG from all shapes in a drawing.
      */
-    static svgFromDrawing(drawing) {
-        return XrxUtils.svgFromShapes(drawing.getLayerShape().getShapes())
+    svgFromDrawing(drawing) {
+        return this.svgFromShapes(drawing.getLayerShape().getShapes())
     }
 
     /**
@@ -305,11 +309,12 @@ module.exports = class XrxUtils {
      *
      * Show the viewbox of `image` as a rectangle in `thumb`
      */
-    static navigationThumb(thumb, image) {
-        if (!thumb || !image) throw new Error("Call 'navigationThumb' with the xrx canvasses for the thumb and the image")
+    navigationThumb(thumb, image) {
+        if (!thumb || !image)
+            throw new Error("Call 'navigationThumb' with the xrx canvasses for the thumb and the image")
 
         var matrix = image.getViewbox().ctmDump();
-        var trans = new goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+        var trans = new this.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
         var scaleX      = Math.sqrt(Math.pow(trans.getScaleX(), 2)+Math.pow(trans.getShearX(), 2));
         var scaleY      = Math.sqrt(Math.pow(trans.getScaleY(), 2)+Math.pow(trans.getShearY(), 2)); /* == scaleX, wenn keine Scherung */
         var thumbWidth  = thumb.getLayerBackground().getImage().getWidth();
@@ -324,7 +329,7 @@ module.exports = class XrxUtils {
 
         var ausschnittWidth = image.getCanvas().getWidth();
         var ausschnittHeight = image.getCanvas().getHeight();
-        var ausschnittRect = new xrx.shape.Rect(thumb);
+        var ausschnittRect = new this.xrx.shape.Rect(thumb);
 
         var ausschnitt = [];
         var angle = CoordUtils.angleFromMatrix(matrix[0], matrix[1]);
@@ -357,7 +362,7 @@ module.exports = class XrxUtils {
             ausschnitt[3] = [(0 - bildLO[0]) * faktorX, (ausschnittHeight - bildLO[1]) * faktorY];
         }
 
-        var rect = new xrx.shape.Rect(thumb);
+        var rect = new this.xrx.shape.Rect(thumb);
         rect.setCoords(ausschnitt)
         rect.setStrokeWidth(1.5);
         var color = '#A00000';
