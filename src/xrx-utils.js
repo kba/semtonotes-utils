@@ -122,7 +122,13 @@ module.exports = class XrxUtils {
             shapes = shapes.getChildren()
         }
         if (!Array.isArray(shapes)) shapes = [shapes]
-
+        const expanded = []
+        shapes.forEach(shape => {
+            if (shape instanceof this.xrx.shape.ShapeGroup)
+                shape.getChildren().forEach(c => expanded.push(c))
+            else expanded.push(shape)
+        })
+        shapes = expanded
         const svg = [
             '<?xml version="1.0" encoding="UTF-8" ?>',
             '<svg xmlns="http://www.w3.org/2000/svg" version="1.1"']
@@ -137,7 +143,6 @@ module.exports = class XrxUtils {
             `width="${shapes[0].getDrawing().getLayerBackground().getImage().getWidth()}"`,
             `height="${shapes[0].getDrawing().getLayerBackground().getImage().getHeight()}">`,
         ].join(' '))
-        // console.log(shapes)
         for (let shape of shapes) {
             console.log(shape, this.xrx.shape.Rect, shape instanceof this.xrx.shape.Rect)
             if (shape instanceof this.xrx.shape.Rect
