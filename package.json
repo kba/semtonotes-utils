@@ -12,7 +12,7 @@
   "author": "kba",
   "license": "MIT",
   "dependencies": {
-    "semtonotes-client": "0.1.0"
+    "semtonotes-client": "0.1.2"
   },
   "devDependencies": {
     "babel-core": "^6.24.1",
