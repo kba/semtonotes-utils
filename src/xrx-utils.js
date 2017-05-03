@@ -144,7 +144,6 @@ module.exports = class XrxUtils {
             `height="${shapes[0].getDrawing().getLayerBackground().getImage().getHeight()}">`,
         ].join(' '))
         for (let shape of shapes) {
-            console.log(shape, this.xrx.shape.Rect, shape instanceof this.xrx.shape.Rect)
             if (shape instanceof this.xrx.shape.Rect
                 || (shape instanceof this.xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
             ) {
@@ -319,13 +318,20 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `navigationThumb(thumb, image)`
+     * #### `navigationThumb(thumb, image, style={})`
      *
      * Show the viewbox of `image` as a rectangle in `thumb`
      */
-    navigationThumb(thumb, image) {
+    navigationThumb(thumb, image, style={}) {
         if (!thumb || !image)
             throw new Error("Call 'navigationThumb' with the xrx canvasses for the thumb and the image")
+
+        style = Object.assign({
+            strokeColor: '#A00000',
+            strokeWidth: 2,
+            fillColor: '#A00000',
+            fillOpacity: 0.15
+        }, style)
 
         var matrix = image.getViewbox().ctmDump();
         var trans = new this.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
@@ -378,19 +384,9 @@ module.exports = class XrxUtils {
 
         var rect = new this.xrx.shape.Rect(thumb);
         rect.setCoords(ausschnitt)
-        rect.setStrokeWidth(1.5);
-        var color = '#A00000';
-        // TODO
-        if (typeof(zonecolor) == 'object' && zonecolor.length > 3) {
-            color = '#'+zonecolor[0];
-        }
-        rect.setStrokeColor(color);
-        rect.setFillColor(color);
-        rect.setFillOpacity(0.15);
-        var rects = [];
-        rects.push(rect);
         thumb.getLayerShape().removeShapes();
         thumb.getLayerShape().addShapes(rect);
+        this.applyStyle(rect, style)
         thumb.draw();
     }
 

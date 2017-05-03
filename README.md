@@ -4,7 +4,7 @@
 * [Installation](#installation)
 	* [Browser](#browser)
 	* [Node.JS / CommonJS](#nodejs--commonjs)
-* [Usage](#usage)
+* [Load in Browser](#load-in-browser)
 * [API](#api)
 	* [XrxUtils](#xrxutils)
 		* [`applyStyle(shapes, styleDef)`](#applystyleshapes-styledef)
@@ -14,7 +14,7 @@
 		* [`drawFromSvg(svgString, drawing)`](#drawfromsvgsvgstring-drawing)
 		* [`svgFromShapes(shapes)`](#svgfromshapesshapes)
 		* [`svgFromDrawing(drawing)`](#svgfromdrawingdrawing)
-		* [`navigationThumb(thumb, image)`](#navigationthumbthumb-image)
+		* [`navigationThumb(thumb, image, style={})`](#navigationthumbthumb-image-style---)
 	* [CoordUtils](#coordutils)
 		* [`angleFromMatrix(m00, m01)`](#anglefrommatrixm00-m01)
 		* [`coordIIIF(polygons, imgwidth, imgheight)`](#coordiiifpolygons-imgwidth-imgheight)
@@ -45,7 +45,7 @@ npm install semtonotes-utils
 
 ```html
 <!-- semtonotes must be loaded before, e.g.
-<script src="https://unpkg.com/semtonotes-client@0.1.3"></script>
+<script src="https://unpkg.com/semtonotes-client@0.2.0"></script>
 -->
 <script src="path/to/xrx-utils.js"></script>
 ```
@@ -71,7 +71,7 @@ methods
 ##### Example
 
 ```js
-XrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
+xrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
 ```
 #### `createDrawing(elem, width, height)`
 Create a drawing in DOMElement `elem`. Overrides goog.style.getSize with
@@ -96,7 +96,7 @@ Create a ShapeGroup from the rect/polygon of an SVG.
 - `@returns xrx.shape.ShapeGroup`
 #### `svgFromDrawing(drawing)`
 Generate SVG from all shapes in a drawing.
-#### `navigationThumb(thumb, image)`
+#### `navigationThumb(thumb, image, style={})`
 Show the viewbox of `image` as a rectangle in `thumb`
 
 <!-- END-RENDER -->
