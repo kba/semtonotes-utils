@@ -96,13 +96,13 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `drawFromSvg(svgString, drawing)`
+     * #### `drawFromSvg(svgString, drawing, options)`
      *
      * Translate `svgString`, a string containing SVG, to shapes and draw them
      * in `drawing`.
      *
-     * - `@param Object options`
-     * - `@param Boolean options.relative` Load shapes relative to the current drawing
+     * For options see [shapesFromSvg](#shapesFromSvg).
+     *
      *
      */
     drawFromSvg(svgString, drawing, options={}) {
@@ -186,36 +186,54 @@ module.exports = class XrxUtils {
      * - `@param string svgString` SVG as a string
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
      * - `@param Object options`
-     * - `@param Boolean options.relative` Load shapes relative to the current drawing
+     * - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
+     * - `@param Boolean options.scaleWidth` Fixed scale factor to scale x-coordinates by.
+     *       Calculated unless provided. Falls back to `1` if not possible (i.e. absolute coords)
+     * - `@param Boolean options.scaleHeight` Fixed scale factor to scale y-coordinates by. Falls back to scaleWidth.
+     * - `@param Boolean options.svgWidth` Provide the width of the SVG context to scale coordinates by.
+     * - `@param Boolean options.svgWidth` ditto height
+     * - `@param Boolean options.imgWidth` Override the width determined by the background image of the canvas.
+     * - `@param Boolean options.imgWidth` ditto height
      * - `@returns xrx.shape.ShapeGroup`
      *
      */
     shapesFromSvg(svgString, drawing, options={}) {
         options.relative = options.relative || false
+
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
 
-        const svgWidth = svg.documentElement.getAttribute('width')
-        const svgHeight = svg.documentElement.getAttribute('height')
+        var {
+            widthScale, heightScale,
+            imgWidth, imgHeight,
+            svgWidth, svgHeight,
+            absolute
+        } = options
 
-        const imgHeight = drawing.getLayerBackground().getImage().getHeight()
-        const imgWidth = drawing.getLayerBackground().getImage().getWidth()
-
-        const relHeight = (svgHeight > 0) ? imgHeight / svgHeight : 1
-        const relWidth = (svgWidth > 0) ? imgWidth / svgWidth : 1
+        if (absolute) {
+            widthScale = 1
+            heightScale = 1
+        } else {
+            if (!widthScale) {
+                if (!svgWidth) svgWidth = svg.documentElement.getAttribute('width')
+                if (!imgWidth) imgWidth = drawing.getLayerBackground().getImage().getWidth()
+                widthScale = svgWidth > 0 ? imgWidth / svgWidth : 1
+            }
+            if (!heightScale) {
+                if (!svgHeight) svgHeight = svg.documentElement.getAttribute('height')
+                if (!imgHeight) imgHeight = drawing.getLayerBackground().getImage().getHeight()
+                heightScale = svgHeight > 0 ? imgHeight / svgHeight : widthScale
+            }
+        }
 
         const shapes = []
 
         Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
             var xrxRect = new this.xrx.shape.Rect(drawing);
-            var [x, y, width, height] = ['x', 'y', 'width', 'height']
-                .map(attr => parseFloat(svgRect.getAttribute(attr)))
-            if (options.relative) {
-                x = x * relWidth
-                y = y * relHeight
-                width = width * relWidth
-                height = height * relHeight
-            }
+            const x      = widthScale  * parseFloat(svgRect.getAttribute('x'))
+            const y      = heightScale * parseFloat(svgRect.getAttribute('y'))
+            const width  = widthScale  * parseFloat(svgRect.getAttribute('width'))
+            const height = heightScale * parseFloat(svgRect.getAttribute('height'))
             const coords = [
                 [x,         y],
                 [x + width, y],
@@ -230,10 +248,8 @@ module.exports = class XrxUtils {
             const xrxPolygon = new this.xrx.shape.Polygon(drawing);
             var coords = svgPolygon
                 .getAttribute("points").split(' ').map(point =>
-                    point.split(',').map(xy => parseInt(xy)))
-            if (options.relative) {
-                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
-            }
+                    point.split(',').map(xy => parseInt(xy))
+                ).map(([x,y]) => [x * widthScale, y * heightScale])
             xrxPolygon.setCoords(coords)
             shapes.push(xrxPolygon)
         })
@@ -242,10 +258,8 @@ module.exports = class XrxUtils {
             const xrxPolyline = new this.xrx.shape.Polyline(drawing);
             var coords = svgPolyline
                 .getAttribute("points").split(' ').map(point =>
-                    point.split(',').map(xy => parseInt(xy)))
-            if (options.relative) {
-                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
-            }
+                    point.split(',').map(xy => parseInt(xy))
+                ).map(([x,y]) => [x * widthScale, y * heightScale])
             xrxPolyline.setCoords(coords)
             shapes.push(xrxPolyline)
         })
@@ -253,16 +267,11 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("circle")).forEach(svgCircle => {
             const xrxCircle = new this.xrx.shape.Circle(drawing)
             const c = [
-                parseFloat(svgCircle.getAttribute('cx')),
-                parseFloat(svgCircle.getAttribute('cy')),
+                widthScale  * parseFloat(svgCircle.getAttribute('cx')),
+                heightScale * parseFloat(svgCircle.getAttribute('cy')),
             ]
-            var r = parseFloat(svgCircle.getAttribute('r'))
-            if (options.relative) {
-                c[0] = c[0] * relWidth
-                c[1] = c[1] * relHeight
-                // TODO
-                r = r * Math.min(relWidth, relHeight)
-            }
+            // TODO
+            const r = Math.min(widthScale, heightScale) *  parseFloat(svgCircle.getAttribute('r'))
             xrxCircle.setCenter(...c)
             xrxCircle.setRadius(r)
             shapes.push(xrxCircle)
@@ -271,19 +280,13 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("ellipse")).forEach(svgEllipse => {
             const xrxEllipse = new this.xrx.shape.Ellipse(drawing)
             const c = [
-                parseFloat(svgEllipse.getAttribute('cx')),
-                parseFloat(svgEllipse.getAttribute('cy')),
+                widthScale * parseFloat(svgEllipse.getAttribute('cx')),
+                heightScale * parseFloat(svgEllipse.getAttribute('cy')),
             ]
             const r = [
-                parseFloat(svgEllipse.getAttribute('rx')),
-                parseFloat(svgEllipse.getAttribute('ry')),
+                widthScale * parseFloat(svgEllipse.getAttribute('rx')),
+                heightScale * parseFloat(svgEllipse.getAttribute('ry')),
             ]
-            if (options.relative) {
-                c[0] = c[0] * relWidth
-                c[1] = c[1] * relHeight
-                r[0] = r[0] * relWidth
-                r[1] = r[1] * relHeight
-            }
             xrxEllipse.setCenter(...c)
             xrxEllipse.setRadiusX(r[0])
             xrxEllipse.setRadiusY(r[1])
@@ -293,12 +296,9 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
             const xrxLine = new this.xrx.shape.Line(drawing)
             var coords = [['x1', 'y1'], ['x2', 'y2']].map(point => [
-                parseFloat(svgLine.getAttribute(point[0])),
-                parseFloat(svgLine.getAttribute(point[1])),
+                widthScale * parseFloat(svgLine.getAttribute(point[0])),
+                heightScale * parseFloat(svgLine.getAttribute(point[1])),
             ])
-            if (options.relative) {
-                coords = coords.map(([x,y]) => [x * relWidth, y * relHeight])
-            }
             xrxLine.setCoords(coords)
             shapes.push(xrxLine)
         })
