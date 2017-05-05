@@ -11,7 +11,7 @@
 			* [Example](#example)
 		* [`createDrawing(elem, width, height)`](#createdrawingelem-width-height)
 		* [`createShape(shapeType, image, options)`](#createshapeshapetype-image-options)
-		* [`drawFromSvg(svgString, drawing)`](#drawfromsvgsvgstring-drawing)
+		* [`drawFromSvg(svgString, drawing, options)`](#drawfromsvgsvgstring-drawing-options)
 		* [`svgFromShapes(shapes)`](#svgfromshapesshapes)
 		* [`svgFromDrawing(drawing)`](#svgfromdrawingdrawing)
 		* [`navigationThumb(thumb, image, style={})`](#navigationthumbthumb-image-style---)
@@ -81,18 +81,24 @@ Options:
 - `@param string shapeType` Shape Type, `Rectangle` or `Polygon`
 - `@param xrx.drawing.Drawing image` the SemToNotes canvas to create the shape in
 - `@param Object options` Options.
-#### `drawFromSvg(svgString, drawing)`
+#### `drawFromSvg(svgString, drawing, options)`
 Translate `svgString`, a string containing SVG, to shapes and draw them
 in `drawing`.
-- `@param Object options`
-- `@param Boolean options.relative` Load shapes relative to the current drawing
+For options see [shapesFromSvg](#shapesFromSvg).
 #### `svgFromShapes(shapes)`
 Generate SVG from a list of shapes or a shapeGroup.
 Create a ShapeGroup from the rect/polygon of an SVG.
 - `@param string svgString` SVG as a string
 - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
 - `@param Object options`
-- `@param Boolean options.relative` Load shapes relative to the current drawing
+- `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
+- `@param Boolean options.scaleWidth` Fixed scale factor to scale x-coordinates by.
+      Calculated unless provided. Falls back to `1` if not possible (i.e. absolute coords)
+- `@param Boolean options.scaleHeight` Fixed scale factor to scale y-coordinates by. Falls back to scaleWidth.
+- `@param Boolean options.svgWidth` Provide the width of the SVG context to scale coordinates by.
+- `@param Boolean options.svgWidth` ditto height
+- `@param Boolean options.imgWidth` Override the width determined by the background image of the canvas.
+- `@param Boolean options.imgWidth` ditto height
 - `@returns xrx.shape.ShapeGroup`
 #### `svgFromDrawing(drawing)`
 Generate SVG from all shapes in a drawing.
