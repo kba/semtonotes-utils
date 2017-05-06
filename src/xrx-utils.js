@@ -193,15 +193,19 @@ module.exports = class XrxUtils {
      * - `@param string svgString` SVG as a string
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
      * - `@param Object options`
-     * - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
-     * - `@param Boolean options.scaleWidth` Fixed scale factor to scale x-coordinates by.
-     *       Calculated unless provided. Falls back to `1` if not possible (i.e. absolute coords)
-     * - `@param Boolean options.scaleHeight` Fixed scale factor to scale y-coordinates by. Falls back to scaleWidth.
-     * - `@param Boolean options.svgWidth` Provide the width of the SVG context to scale coordinates by.
-     * - `@param Boolean options.svgWidth` ditto height
-     * - `@param Boolean options.imgWidth` Override the width determined by the background image of the canvas.
-     * - `@param Boolean options.imgWidth` ditto height
-     * - `@returns xrx.shape.ShapeGroup`
+     *   - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
+     *   - `@param Boolean options.widthScale` Fixed scale factor to scale
+     *          x-coordinates by.  Calculated unless provided. Falls back to
+     *          `1` if not possible (i.e. absolute coords)
+     *   - `@param Boolean options.heightScale` Fixed scale factor to scale
+     *          y-coordinates by. Falls back to widthScale.
+     *   - `@param Boolean options.svgWidth` Provide the width of the SVG
+     *          context to scale coordinates by.
+     *   - `@param Boolean options.svgWidth` ditto height
+     *   - `@param Boolean options.imgWidth` Override the width determined by
+     *          the background image of the canvas.
+     *   - `@param Boolean options.imgWidth` ditto height
+     *   - `@returns xrx.shape.ShapeGroup`
      *
      */
     shapesFromSvg(svgString, drawing, options={}) {
@@ -239,6 +243,16 @@ module.exports = class XrxUtils {
                 heightScale = svgHeight > 0 ? imgHeight / svgHeight : widthScale
             }
         }
+        svgHeight = heightScale * imgHeight
+        svgWidth = widthScale * imgWidth
+        // console.log({
+        //     widthScale, heightScale,
+        //     imgWidth, imgHeight,
+        //     svgWidth, svgHeight,
+        //     absolute,
+        //     svgString,
+        //     svg,
+        // })
 
         const shapes = []
 
