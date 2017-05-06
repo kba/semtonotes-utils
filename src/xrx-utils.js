@@ -112,7 +112,12 @@ module.exports = class XrxUtils {
             return
         }
         const shapes = this.shapesFromSvg(svgString, drawing, options)
-        drawing.getLayerShape().addShapes(shapes)
+        console.log("drawFromSvg", {shapes})
+        if (Array.isArray(shapes)) {
+            shapes.forEach(shape => drawing.getLayerShape().addShapes(shape))
+        } else {
+            drawing.getLayerShape().addShapes(shapes)
+        }
         drawing.draw()
         return shapes
     }
@@ -151,7 +156,7 @@ module.exports = class XrxUtils {
         })
         shapes = expanded
         if (shapes.length === 0) {
-            console.warn("Should pass at least one shape to svgFromShape or SVG will be empty")
+            console.warn("Should pass at least one shape to svgFromShapes or SVG will be empty")
             return '<svg></svg>'
         }
         const drawing = shapes[0].getDrawing()
@@ -185,7 +190,7 @@ module.exports = class XrxUtils {
         }
         svgWidth = scaleX * imgWidth
         svgHeight = scaleY * imgHeight
-        console.log({
+        console.log("svgFromShapes", {
             scaleX, scaleY,
             imgWidth, imgHeight,
             svgWidth, svgHeight,
@@ -275,7 +280,7 @@ module.exports = class XrxUtils {
     shapesFromSvg(svgString, drawing, options={}) {
         if (!svgString) {
             console.warn("shapesFromSvg: No shapes to load from empty svg!")
-            return
+            return options.grouped ? new this.xrx.shape.ShapeGroup(drawing) : []
         }
 
         options.grouped = ('grouped' in options) ? options.grouped : true
@@ -311,14 +316,14 @@ module.exports = class XrxUtils {
         }
         svgHeight = scaleY * imgHeight
         svgWidth = scaleX * imgWidth
-        // console.log({
-        //     scaleX, scaleY,
-        //     imgWidth, imgHeight,
-        //     svgWidth, svgHeight,
-        //     absolute,
-        //     svgString,
-        //     svg,
-        // })
+        console.log("shapesFromSvg", {
+            scaleX, scaleY,
+            imgWidth, imgHeight,
+            svgWidth, svgHeight,
+            absolute,
+            svgString,
+            svg,
+        })
 
         const shapes = []
 
@@ -411,7 +416,8 @@ module.exports = class XrxUtils {
      * 
      * Generate SVG from all shapes in a drawing.
      * 
-     * For options, see [`svgFromShapes`](#svgfromshapesshapes-options)
+     * - `@param {Shape|Array<Shape>|ShapeGroup} shapes`
+     * - `@param Object options` See [`svgFromShapes`](#svgfromshapesshapes-options)
      */
     svgFromDrawing(drawing, options) {
         return this.svgFromShapes(drawing.getLayerShape().getShapes())
