@@ -106,6 +106,10 @@ module.exports = class XrxUtils {
      *
      */
     drawFromSvg(svgString, drawing, options={}) {
+        if (!svgString) {
+            console.warn("drawFromSvg: No shapes to load from empty svg!")
+            return
+        }
         const group = this.shapesFromSvg(svgString, drawing, options)
         drawing.getLayerShape().addShapes(group)
         drawing.draw()
@@ -181,6 +185,9 @@ module.exports = class XrxUtils {
     }
 
     /**
+     * 
+     * #### `shapesFromSvg(svg, drawing, options)`
+     * 
      * Create a ShapeGroup from the rect/polygon of an SVG.
      *
      * - `@param string svgString` SVG as a string
@@ -198,10 +205,17 @@ module.exports = class XrxUtils {
      *
      */
     shapesFromSvg(svgString, drawing, options={}) {
-        options.relative = options.relative || false
+        if (!svgString) {
+            console.warn("shapesFromSvg: No shapes to load from empty svg!")
+            return
+        }
 
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
+
+        if (svg.querySelector('parsererror')) {
+            throw new Error("Failed to parse SVG: " + svg.querySelector('parsererror').innerText)
+        }
 
         var {
             widthScale, heightScale,
@@ -309,11 +323,13 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `svgFromDrawing(drawing)`
-     *
+     * #### `svgFromDrawing(drawing, options)`
+     * 
      * Generate SVG from all shapes in a drawing.
+     * 
+     * For options, see [`svgFromShapes`](#svgfromshapesshapes-options)
      */
-    svgFromDrawing(drawing) {
+    svgFromDrawing(drawing, options) {
         return this.svgFromShapes(drawing.getLayerShape().getShapes())
     }
 
