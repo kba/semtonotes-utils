@@ -117,14 +117,30 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `svgFromShapes(shapes)`
-     *
+     * 
+     * #### `svgFromShapes(shapes, options)`
+     * 
      * Generate SVG from a list of shapes or a shapeGroup.
+     * 
+     * - `@param {Shape|Array<Shape>|ShapeGroup} shapes`
+     * - `@param Object options`
+     *   - `@param Object options.absolute` Assume SVG coordinates to be equal to image dimensions. Default: `false`
+     *   - `@param Boolean options.widthScale` Fixed scale factor to scale
+     *          x-coordinates by.  Calculated unless provided. Falls back to
+     *          `1` if not possible (i.e. absolute coords)
+     *   - `@param Boolean options.heightScale` Fixed scale factor to scale
+     *          y-coordinates by. Falls back to widthScale.
+     *   - `@param Boolean options.svgWidth` Provide the width of the SVG
+     *          context to scale coordinates by.
+     *   - `@param Boolean options.svgWidth` ditto height
+     *   - `@param Boolean options.imgWidth` Override the width determined by
+     *          the background image of the canvas.
+     *   - `@param Boolean options.imgWidth` ditto height
+     *   - `@param Boolean options.skipHeight` Whether height should not be stored in SVG
      */
-    svgFromShapes(shapes=[]) {
-        if (shapes instanceof this.xrx.shape.ShapeGroup) {
-            shapes = shapes.getChildren()
-        }
+    svgFromShapes(shapes=[], options={}) {
+
+        // Handle shape inputs
         if (!Array.isArray(shapes)) shapes = [shapes]
         const expanded = []
         shapes.forEach(shape => {
@@ -133,21 +149,57 @@ module.exports = class XrxUtils {
             else expanded.push(shape)
         })
         shapes = expanded
-        const svg = [
-            '<?xml version="1.0" encoding="UTF-8" ?>',
-            '<svg xmlns="http://www.w3.org/2000/svg" version="1.1"']
-
         if (shapes.length === 0) {
             console.warn("Should pass at least one shape to svgFromShape or SVG will be empty")
-            svg.push('></svg>')
-            return svg.join('')
+            return '<svg></svg>'
         }
+        const drawing = shapes[0].getDrawing()
 
-        svg.push([
-            `width="${shapes[0].getDrawing().getLayerBackground().getImage().getWidth()}"`,
-            `height="${shapes[0].getDrawing().getLayerBackground().getImage().getHeight()}">`,
-        ].join(' '))
-        for (let shape of shapes) {
+        // Determine scaling
+        var {
+            widthScale, heightScale,
+            imgWidth, imgHeight,
+            svgWidth, svgHeight,
+            absolute,
+            skipHeight,
+        } = options
+
+        if (absolute) {
+            widthScale = 1
+            heightScale = 1
+        } else {
+            if (!widthScale) {
+                if (!imgWidth) imgWidth = drawing.getLayerBackground().getImage().getWidth()
+                if (!svgWidth || svgWidth <= 0) widthScale = 1
+                else widthScale = imgWidth / svgWidth
+            }
+            if (!heightScale) {
+                if (!imgHeight) imgHeight = drawing.getLayerBackground().getImage().getHeight()
+                if (!svgHeight || svgHeight <= 0) {
+                    heightScale = widthScale
+                    skipHeight = true
+                }
+                else heightScale = imgHeight / svgHeight
+            }
+        }
+        svgWidth = widthScale * imgWidth
+        svgHeight = heightScale * imgHeight
+        console.log({
+            widthScale, heightScale,
+            imgWidth, imgHeight,
+            svgWidth, svgHeight,
+            absolute,
+            skipHeight,
+        })
+
+        const svg = [
+            '<?xml version="1.0" encoding="UTF-8" ?>',
+            `<svg xmlns="http://www.w3.org/2000/svg" version="1.1"`
+            + `\n  width="${svgWidth}"`
+            + (skipHeight ? '' : `\n  height=${svgHeight}`)
+            + '>'
+        ]
+        shapes.forEach(shape => {
             if (shape instanceof this.xrx.shape.Rect
                 || (shape instanceof this.xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
             ) {
@@ -158,28 +210,38 @@ module.exports = class XrxUtils {
                     ;[maxX, maxY] = [Math.max(x, maxX), Math.max(y, maxY)]
                     ;[minX, minY] = [Math.min(x, minX), Math.min(y, minY)]
                 }
-                svg.push(`  <rect x="${minX}" y="${minY}" width="${maxX - minX}" height="${maxY - minY}"/>`)
-            } else if (shape instanceof this.xrx.shape.Polygon) {
-                const coords = shape.getCoords()
-                svg.push(`  <polygon points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
-            } else if (shape instanceof this.xrx.shape.Polyline) {
-                const coords = shape.getCoords()
-                svg.push(`  <polyline points="${coords.map(xy => xy.join(',')).join(' ')}" />`)
+                svg.push(['  <rect',
+                    `x="${widthScale * minX}"`,
+                    `y="${heightScale * minY}"`,
+                    `width="${widthScale * (maxX - minX)}"`,
+                    `height="${heightScale * (maxY - minY)}"`,
+                    `/>`
+                ].join(' '))
+            } else if (shape instanceof this.xrx.shape.Polygon
+                || shape instanceof this.xrx.shape.Polyline) {
+                const elem = shape instanceof this.xrx.shape.Polyline ? 'line' : 'gon'
+                const coords = shape.getCoords().map(
+                    ([x, y]) => [widthScale * x, heightScale * y].join(',')
+                ).join(' ')
+                svg.push(`  <poly${elem} points="${coords}" />`)
             } else if (shape instanceof this.xrx.shape.Line) {
                 const coords = shape.getCoords()
-                svg.push(`  <line x1="${coords[0][0]}" y1="${coords[0][1]}" x2="${coords[1][0]}" y2="${coords[1][1]}"/>`)
+                const [x1, y1] = [widthScale * coords[0][0], heightScale * coords[0][1]]
+                const [x2, y2] = [widthScale * coords[1][0], heightScale * coords[1][1]]
+                svg.push(`  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)
             } else if (shape instanceof this.xrx.shape.Ellipse) {
-                const [cx, cy] = shape.getCenter()
-                const [rx, ry] = [shape.getRadiusX(), shape.getRadiusY()]
+                const [cx, cy] = [widthScale * shape.getCenter()[0], heightScale * shape.getCenter()[1]]
+                const [rx, ry] = [widthScale * shape.getRadiusX(), heightScale * shape.getRadiusY()]
                 svg.push(`  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`)
+            // TODO must become an ellipse if heightScale != widthScale
             } else if (shape instanceof this.xrx.shape.Circle) {
-                const [cx, cy] = shape.getCenter()
-                const r = shape.getRadius()
+                const [cx, cy] = [widthScale * shape.getCenter()[0], heightScale * shape.getCenter()[1]]
+                const r = widthScale * shape.getRadius()
                 svg.push(`  <circle cx="${cx}" cy="${cy}" r="${r}"/>`)
             } else {
                 console.error("SVG Export not implemented for", shape)
             }
-        }
+        })
         svg.push("</svg>")
         return svg.join('\n')
     }
