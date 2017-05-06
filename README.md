@@ -12,8 +12,9 @@
 		* [`createDrawing(elem, width, height)`](#createdrawingelem-width-height)
 		* [`createShape(shapeType, image, options)`](#createshapeshapetype-image-options)
 		* [`drawFromSvg(svgString, drawing, options)`](#drawfromsvgsvgstring-drawing-options)
-		* [`svgFromShapes(shapes)`](#svgfromshapesshapes)
-		* [`svgFromDrawing(drawing)`](#svgfromdrawingdrawing)
+		* [`svgFromShapes(shapes, options)`](#svgfromshapesshapes-options)
+		* [`shapesFromSvg(svg, drawing, options)`](#shapesfromsvgsvg-drawing-options)
+		* [`svgFromDrawing(drawing, options)`](#svgfromdrawingdrawing-options)
 		* [`navigationThumb(thumb, image, style={})`](#navigationthumbthumb-image-style---)
 	* [CoordUtils](#coordutils)
 		* [`angleFromMatrix(m00, m01)`](#anglefrommatrixm00-m01)
@@ -85,23 +86,51 @@ Options:
 Translate `svgString`, a string containing SVG, to shapes and draw them
 in `drawing`.
 For options see [shapesFromSvg](#shapesFromSvg).
-#### `svgFromShapes(shapes)`
+
+#### `svgFromShapes(shapes, options)`
+
 Generate SVG from a list of shapes or a shapeGroup.
+
+- `@param {Shape|Array<Shape>|ShapeGroup} shapes`
+- `@param Object options`
+  - `@param Object options.absolute` Assume SVG coordinates to be equal to image dimensions. Default: `false`
+  - `@param Boolean options.scaleX` Fixed scale factor to scale
+         x-coordinates by.  Calculated unless provided. Falls back to
+         `1` if not possible (i.e. absolute coords)
+  - `@param Boolean options.scaleY` Fixed scale factor to scale
+         y-coordinates by. Falls back to scaleX.
+  - `@param Boolean options.svgWidth` Provide the width of the SVG
+         context to scale coordinates by.
+  - `@param Boolean options.svgWidth` ditto height
+  - `@param Boolean options.imgWidth` Override the width determined by
+         the background image of the canvas.
+  - `@param Boolean options.imgWidth` ditto height
+  - `@param Boolean options.skipHeight` Whether height should not be stored in SVG
+
+#### `shapesFromSvg(svg, drawing, options)`
+
 Create a ShapeGroup from the rect/polygon of an SVG.
 - `@param string svgString` SVG as a string
 - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
 - `@param Object options`
-- `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
-- `@param Boolean options.scaleWidth` Fixed scale factor to scale x-coordinates by.
-      Calculated unless provided. Falls back to `1` if not possible (i.e. absolute coords)
-- `@param Boolean options.scaleHeight` Fixed scale factor to scale y-coordinates by. Falls back to scaleWidth.
-- `@param Boolean options.svgWidth` Provide the width of the SVG context to scale coordinates by.
-- `@param Boolean options.svgWidth` ditto height
-- `@param Boolean options.imgWidth` Override the width determined by the background image of the canvas.
-- `@param Boolean options.imgWidth` ditto height
-- `@returns xrx.shape.ShapeGroup`
-#### `svgFromDrawing(drawing)`
+  - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
+  - `@param Boolean options.scaleX` Fixed scale factor to scale
+         x-coordinates by.  Calculated unless provided. Falls back to
+         `1` if not possible (i.e. absolute coords)
+  - `@param Boolean options.scaleY` Fixed scale factor to scale
+         y-coordinates by. Falls back to scaleX.
+  - `@param Boolean options.svgWidth` Provide the width of the SVG
+         context to scale coordinates by.
+  - `@param Boolean options.svgWidth` ditto height
+  - `@param Boolean options.imgWidth` Override the width determined by
+         the background image of the canvas.
+  - `@param Boolean options.imgWidth` ditto height
+  - `@returns xrx.shape.ShapeGroup`
+#### `svgFromDrawing(drawing, options)`
+
 Generate SVG from all shapes in a drawing.
+
+For options, see [`svgFromShapes`](#svgfromshapesshapes-options)
 #### `navigationThumb(thumb, image, style={})`
 Show the viewbox of `image` as a rectangle in `thumb`
 
