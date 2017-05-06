@@ -125,11 +125,11 @@ module.exports = class XrxUtils {
      * - `@param {Shape|Array<Shape>|ShapeGroup} shapes`
      * - `@param Object options`
      *   - `@param Object options.absolute` Assume SVG coordinates to be equal to image dimensions. Default: `false`
-     *   - `@param Boolean options.widthScale` Fixed scale factor to scale
+     *   - `@param Boolean options.scaleX` Fixed scale factor to scale
      *          x-coordinates by.  Calculated unless provided. Falls back to
      *          `1` if not possible (i.e. absolute coords)
-     *   - `@param Boolean options.heightScale` Fixed scale factor to scale
-     *          y-coordinates by. Falls back to widthScale.
+     *   - `@param Boolean options.scaleY` Fixed scale factor to scale
+     *          y-coordinates by. Falls back to scaleX.
      *   - `@param Boolean options.svgWidth` Provide the width of the SVG
      *          context to scale coordinates by.
      *   - `@param Boolean options.svgWidth` ditto height
@@ -157,7 +157,7 @@ module.exports = class XrxUtils {
 
         // Determine scaling
         var {
-            widthScale, heightScale,
+            scaleX, scaleY,
             imgWidth, imgHeight,
             svgWidth, svgHeight,
             absolute,
@@ -165,27 +165,27 @@ module.exports = class XrxUtils {
         } = options
 
         if (absolute) {
-            widthScale = 1
-            heightScale = 1
+            scaleX = 1
+            scaleY = 1
         } else {
-            if (!widthScale) {
+            if (!scaleX) {
                 if (!imgWidth) imgWidth = drawing.getLayerBackground().getImage().getWidth()
-                if (!svgWidth || svgWidth <= 0) widthScale = 1
-                else widthScale = imgWidth / svgWidth
+                if (!svgWidth || svgWidth <= 0) scaleX = 1
+                else scaleX = imgWidth / svgWidth
             }
-            if (!heightScale) {
+            if (!scaleY) {
                 if (!imgHeight) imgHeight = drawing.getLayerBackground().getImage().getHeight()
                 if (!svgHeight || svgHeight <= 0) {
-                    heightScale = widthScale
+                    scaleY = scaleX
                     skipHeight = true
                 }
-                else heightScale = imgHeight / svgHeight
+                else scaleY = imgHeight / svgHeight
             }
         }
-        svgWidth = widthScale * imgWidth
-        svgHeight = heightScale * imgHeight
+        svgWidth = scaleX * imgWidth
+        svgHeight = scaleY * imgHeight
         console.log({
-            widthScale, heightScale,
+            scaleX, scaleY,
             imgWidth, imgHeight,
             svgWidth, svgHeight,
             absolute,
@@ -211,32 +211,32 @@ module.exports = class XrxUtils {
                     ;[minX, minY] = [Math.min(x, minX), Math.min(y, minY)]
                 }
                 svg.push(['  <rect',
-                    `x="${widthScale * minX}"`,
-                    `y="${heightScale * minY}"`,
-                    `width="${widthScale * (maxX - minX)}"`,
-                    `height="${heightScale * (maxY - minY)}"`,
+                    `x="${scaleX * minX}"`,
+                    `y="${scaleY * minY}"`,
+                    `width="${scaleX * (maxX - minX)}"`,
+                    `height="${scaleY * (maxY - minY)}"`,
                     `/>`
                 ].join(' '))
             } else if (shape instanceof this.xrx.shape.Polygon
                 || shape instanceof this.xrx.shape.Polyline) {
                 const elem = shape instanceof this.xrx.shape.Polyline ? 'line' : 'gon'
                 const coords = shape.getCoords().map(
-                    ([x, y]) => [widthScale * x, heightScale * y].join(',')
+                    ([x, y]) => [scaleX * x, scaleY * y].join(',')
                 ).join(' ')
                 svg.push(`  <poly${elem} points="${coords}" />`)
             } else if (shape instanceof this.xrx.shape.Line) {
                 const coords = shape.getCoords()
-                const [x1, y1] = [widthScale * coords[0][0], heightScale * coords[0][1]]
-                const [x2, y2] = [widthScale * coords[1][0], heightScale * coords[1][1]]
+                const [x1, y1] = [scaleX * coords[0][0], scaleY * coords[0][1]]
+                const [x2, y2] = [scaleX * coords[1][0], scaleY * coords[1][1]]
                 svg.push(`  <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`)
             } else if (shape instanceof this.xrx.shape.Ellipse) {
-                const [cx, cy] = [widthScale * shape.getCenter()[0], heightScale * shape.getCenter()[1]]
-                const [rx, ry] = [widthScale * shape.getRadiusX(), heightScale * shape.getRadiusY()]
+                const [cx, cy] = [scaleX * shape.getCenter()[0], scaleY * shape.getCenter()[1]]
+                const [rx, ry] = [scaleX * shape.getRadiusX(), scaleY * shape.getRadiusY()]
                 svg.push(`  <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`)
-            // TODO must become an ellipse if heightScale != widthScale
+            // TODO must become an ellipse if scaleY != scaleX
             } else if (shape instanceof this.xrx.shape.Circle) {
-                const [cx, cy] = [widthScale * shape.getCenter()[0], heightScale * shape.getCenter()[1]]
-                const r = widthScale * shape.getRadius()
+                const [cx, cy] = [scaleX * shape.getCenter()[0], scaleY * shape.getCenter()[1]]
+                const r = scaleX * shape.getRadius()
                 svg.push(`  <circle cx="${cx}" cy="${cy}" r="${r}"/>`)
             } else {
                 console.error("SVG Export not implemented for", shape)
@@ -256,11 +256,11 @@ module.exports = class XrxUtils {
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
      * - `@param Object options`
      *   - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
-     *   - `@param Boolean options.widthScale` Fixed scale factor to scale
+     *   - `@param Boolean options.scaleX` Fixed scale factor to scale
      *          x-coordinates by.  Calculated unless provided. Falls back to
      *          `1` if not possible (i.e. absolute coords)
-     *   - `@param Boolean options.heightScale` Fixed scale factor to scale
-     *          y-coordinates by. Falls back to widthScale.
+     *   - `@param Boolean options.scaleY` Fixed scale factor to scale
+     *          y-coordinates by. Falls back to scaleX.
      *   - `@param Boolean options.svgWidth` Provide the width of the SVG
      *          context to scale coordinates by.
      *   - `@param Boolean options.svgWidth` ditto height
@@ -284,31 +284,31 @@ module.exports = class XrxUtils {
         }
 
         var {
-            widthScale, heightScale,
+            scaleX, scaleY,
             imgWidth, imgHeight,
             svgWidth, svgHeight,
             absolute
         } = options
 
         if (absolute) {
-            widthScale = 1
-            heightScale = 1
+            scaleX = 1
+            scaleY = 1
         } else {
-            if (!widthScale) {
+            if (!scaleX) {
                 if (!svgWidth) svgWidth = svg.documentElement.getAttribute('width')
                 if (!imgWidth) imgWidth = drawing.getLayerBackground().getImage().getWidth()
-                widthScale = svgWidth > 0 ? imgWidth / svgWidth : 1
+                scaleX = svgWidth > 0 ? imgWidth / svgWidth : 1
             }
-            if (!heightScale) {
+            if (!scaleY) {
                 if (!svgHeight) svgHeight = svg.documentElement.getAttribute('height')
                 if (!imgHeight) imgHeight = drawing.getLayerBackground().getImage().getHeight()
-                heightScale = svgHeight > 0 ? imgHeight / svgHeight : widthScale
+                scaleY = svgHeight > 0 ? imgHeight / svgHeight : scaleX
             }
         }
-        svgHeight = heightScale * imgHeight
-        svgWidth = widthScale * imgWidth
+        svgHeight = scaleY * imgHeight
+        svgWidth = scaleX * imgWidth
         // console.log({
-        //     widthScale, heightScale,
+        //     scaleX, scaleY,
         //     imgWidth, imgHeight,
         //     svgWidth, svgHeight,
         //     absolute,
@@ -320,10 +320,10 @@ module.exports = class XrxUtils {
 
         Array.from(svg.querySelectorAll("rect")).forEach(svgRect => {
             var xrxRect = new this.xrx.shape.Rect(drawing);
-            const x      = widthScale  * parseFloat(svgRect.getAttribute('x'))
-            const y      = heightScale * parseFloat(svgRect.getAttribute('y'))
-            const width  = widthScale  * parseFloat(svgRect.getAttribute('width'))
-            const height = heightScale * parseFloat(svgRect.getAttribute('height'))
+            const x      = scaleX  * parseFloat(svgRect.getAttribute('x'))
+            const y      = scaleY * parseFloat(svgRect.getAttribute('y'))
+            const width  = scaleX  * parseFloat(svgRect.getAttribute('width'))
+            const height = scaleY * parseFloat(svgRect.getAttribute('height'))
             const coords = [
                 [x,         y],
                 [x + width, y],
@@ -339,7 +339,7 @@ module.exports = class XrxUtils {
             var coords = svgPolygon
                 .getAttribute("points").split(' ').map(point =>
                     point.split(',').map(xy => parseInt(xy))
-                ).map(([x,y]) => [x * widthScale, y * heightScale])
+                ).map(([x,y]) => [x * scaleX, y * scaleY])
             xrxPolygon.setCoords(coords)
             shapes.push(xrxPolygon)
         })
@@ -349,7 +349,7 @@ module.exports = class XrxUtils {
             var coords = svgPolyline
                 .getAttribute("points").split(' ').map(point =>
                     point.split(',').map(xy => parseInt(xy))
-                ).map(([x,y]) => [x * widthScale, y * heightScale])
+                ).map(([x,y]) => [x * scaleX, y * scaleY])
             xrxPolyline.setCoords(coords)
             shapes.push(xrxPolyline)
         })
@@ -357,11 +357,11 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("circle")).forEach(svgCircle => {
             const xrxCircle = new this.xrx.shape.Circle(drawing)
             const c = [
-                widthScale  * parseFloat(svgCircle.getAttribute('cx')),
-                heightScale * parseFloat(svgCircle.getAttribute('cy')),
+                scaleX  * parseFloat(svgCircle.getAttribute('cx')),
+                scaleY * parseFloat(svgCircle.getAttribute('cy')),
             ]
             // TODO
-            const r = Math.min(widthScale, heightScale) *  parseFloat(svgCircle.getAttribute('r'))
+            const r = Math.min(scaleX, scaleY) *  parseFloat(svgCircle.getAttribute('r'))
             xrxCircle.setCenter(...c)
             xrxCircle.setRadius(r)
             shapes.push(xrxCircle)
@@ -370,12 +370,12 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("ellipse")).forEach(svgEllipse => {
             const xrxEllipse = new this.xrx.shape.Ellipse(drawing)
             const c = [
-                widthScale * parseFloat(svgEllipse.getAttribute('cx')),
-                heightScale * parseFloat(svgEllipse.getAttribute('cy')),
+                scaleX * parseFloat(svgEllipse.getAttribute('cx')),
+                scaleY * parseFloat(svgEllipse.getAttribute('cy')),
             ]
             const r = [
-                widthScale * parseFloat(svgEllipse.getAttribute('rx')),
-                heightScale * parseFloat(svgEllipse.getAttribute('ry')),
+                scaleX * parseFloat(svgEllipse.getAttribute('rx')),
+                scaleY * parseFloat(svgEllipse.getAttribute('ry')),
             ]
             xrxEllipse.setCenter(...c)
             xrxEllipse.setRadiusX(r[0])
@@ -386,8 +386,8 @@ module.exports = class XrxUtils {
         Array.from(svg.querySelectorAll("line")).forEach(svgLine => {
             const xrxLine = new this.xrx.shape.Line(drawing)
             var coords = [['x1', 'y1'], ['x2', 'y2']].map(point => [
-                widthScale * parseFloat(svgLine.getAttribute(point[0])),
-                heightScale * parseFloat(svgLine.getAttribute(point[1])),
+                scaleX * parseFloat(svgLine.getAttribute(point[0])),
+                scaleY * parseFloat(svgLine.getAttribute(point[1])),
             ])
             xrxLine.setCoords(coords)
             shapes.push(xrxLine)
