@@ -101,8 +101,9 @@ module.exports = class XrxUtils {
      * Translate `svgString`, a string containing SVG, to shapes and draw them
      * in `drawing`.
      *
-     * For options see [shapesFromSvg](#shapesFromSvg).
-     *
+     * - `@param string svgString` SVG as a string
+     * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
+     * - `@param Object options` All options from [shapesFromSvg](#shapesFromSvg).
      *
      */
     drawFromSvg(svgString, drawing, options={}) {
@@ -110,10 +111,10 @@ module.exports = class XrxUtils {
             console.warn("drawFromSvg: No shapes to load from empty svg!")
             return
         }
-        const group = this.shapesFromSvg(svgString, drawing, options)
-        drawing.getLayerShape().addShapes(group)
+        const shapes = this.shapesFromSvg(svgString, drawing, options)
+        drawing.getLayerShape().addShapes(shapes)
         drawing.draw()
-        return group
+        return shapes
     }
 
     /**
@@ -255,6 +256,7 @@ module.exports = class XrxUtils {
      * - `@param string svgString` SVG as a string
      * - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
      * - `@param Object options`
+     *   - `@param Boolean options.grouped` Create a new ShapeGroup with the shapes. Default `true`
      *   - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
      *   - `@param Boolean options.scaleX` Fixed scale factor to scale
      *          x-coordinates by.  Calculated unless provided. Falls back to
@@ -275,6 +277,8 @@ module.exports = class XrxUtils {
             console.warn("shapesFromSvg: No shapes to load from empty svg!")
             return
         }
+
+        options.grouped = ('grouped' in options) ? options.grouped : true
 
         var parser = new window.DOMParser();
         var svg = parser.parseFromString(svgString, "image/svg+xml");
@@ -393,9 +397,13 @@ module.exports = class XrxUtils {
             shapes.push(xrxLine)
         })
 
-        const group = new this.xrx.shape.ShapeGroup(drawing)
-        group.addChildren(shapes);
-        return group
+        if (options.grouped) {
+            const group = new this.xrx.shape.ShapeGroup(drawing)
+            group.addChildren(shapes);
+            return group
+        } else {
+            return shapes
+        }
     }
 
     /**
