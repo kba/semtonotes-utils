@@ -112,7 +112,7 @@ module.exports = class XrxUtils {
             return
         }
         const shapes = this.shapesFromSvg(svgString, drawing, options)
-        console.log("drawFromSvg", {shapes})
+        // console.log("drawFromSvg", {shapes})
         if (Array.isArray(shapes)) {
             shapes.forEach(shape => drawing.getLayerShape().addShapes(shape))
         } else {
@@ -190,13 +190,13 @@ module.exports = class XrxUtils {
         }
         svgWidth = scaleX * imgWidth
         svgHeight = scaleY * imgHeight
-        console.log("svgFromShapes", {
-            scaleX, scaleY,
-            imgWidth, imgHeight,
-            svgWidth, svgHeight,
-            absolute,
-            skipHeight,
-        })
+        // console.log("svgFromShapes", {
+        //     scaleX, scaleY,
+        //     imgWidth, imgHeight,
+        //     svgWidth, svgHeight,
+        //     absolute,
+        //     skipHeight,
+        // })
 
         const svg = [
             '<?xml version="1.0" encoding="UTF-8" ?>',
@@ -316,14 +316,14 @@ module.exports = class XrxUtils {
         }
         svgHeight = scaleY * imgHeight
         svgWidth = scaleX * imgWidth
-        console.log("shapesFromSvg", {
-            scaleX, scaleY,
-            imgWidth, imgHeight,
-            svgWidth, svgHeight,
-            absolute,
-            svgString,
-            svg,
-        })
+        // console.log("shapesFromSvg", {
+        //     scaleX, scaleY,
+        //     imgWidth, imgHeight,
+        //     svgWidth, svgHeight,
+        //     absolute,
+        //     svgString,
+        //     svg,
+        // })
 
         const shapes = []
 
