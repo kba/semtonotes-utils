@@ -58,6 +58,10 @@ Or via unpkg's cdn:
 <script src="https://unpkg.com/semtonotes-utils@0.1.7"></script>
 ```
 
+## Debugging
+
+Set `window.XRX_DEBUG = true` before loading the library to see debug messages.
+
 ## API
 
 <!-- BEGIN-RENDER src/xrx-utils.js -->
@@ -85,7 +89,9 @@ Options:
 #### `drawFromSvg(svgString, drawing, options)`
 Translate `svgString`, a string containing SVG, to shapes and draw them
 in `drawing`.
-For options see [shapesFromSvg](#shapesFromSvg).
+- `@param string svgString` SVG as a string
+- `@param xrx.drawing.Drawing drawing` the drawing to create the group in
+- `@param Object options` All options from [shapesFromSvg](#shapesFromSvg).
 
 #### `svgFromShapes(shapes, options)`
 
@@ -113,6 +119,7 @@ Create a ShapeGroup from the rect/polygon of an SVG.
 - `@param string svgString` SVG as a string
 - `@param xrx.drawing.Drawing drawing` the drawing to create the group in
 - `@param Object options`
+  - `@param Boolean options.grouped` Create a new ShapeGroup with the shapes. Default `true`
   - `@param Boolean options.absolute` Force absolute coordinates. Default: `false`
   - `@param Boolean options.scaleX` Fixed scale factor to scale
          x-coordinates by.  Calculated unless provided. Falls back to
@@ -130,7 +137,8 @@ Create a ShapeGroup from the rect/polygon of an SVG.
 
 Generate SVG from all shapes in a drawing.
 
-For options, see [`svgFromShapes`](#svgfromshapesshapes-options)
+- `@param {Shape|Array<Shape>|ShapeGroup} shapes`
+- `@param Object options` See [`svgFromShapes`](#svgfromshapesshapes-options)
 #### `navigationThumb(thumb, image, style={})`
 Show the viewbox of `image` as a rectangle in `thumb`
 

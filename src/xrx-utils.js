@@ -52,7 +52,8 @@ module.exports = class XrxUtils {
                         style[propToSetter(prop)](val)
                     }
                 } catch (err) {
-                    console.log("Failed for", prop, val, obj)
+                    if (window && window.XRX_DEBUG)
+                        console.log("Failed for", prop, val, obj)
                     throw(err)
                 }
             })
@@ -108,7 +109,8 @@ module.exports = class XrxUtils {
      */
     drawFromSvg(svgString, drawing, options={}) {
         if (!svgString) {
-            console.warn("drawFromSvg: No shapes to load from empty svg!")
+            if (window && window.XRX_DEBUG)
+                console.warn("drawFromSvg: No shapes to load from empty svg!")
             return
         }
         const shapes = this.shapesFromSvg(svgString, drawing, options)
@@ -156,7 +158,8 @@ module.exports = class XrxUtils {
         })
         shapes = expanded
         if (shapes.length === 0) {
-            console.warn("Should pass at least one shape to svgFromShapes or SVG will be empty")
+            if (window && window.XRX_DEBUG)
+                console.warn("Should pass at least one shape to svgFromShapes or SVG will be empty")
             return '<svg></svg>'
         }
         const drawing = shapes[0].getDrawing()
@@ -190,13 +193,14 @@ module.exports = class XrxUtils {
         }
         svgWidth = scaleX * imgWidth
         svgHeight = scaleY * imgHeight
-        // console.log("svgFromShapes", {
-        //     scaleX, scaleY,
-        //     imgWidth, imgHeight,
-        //     svgWidth, svgHeight,
-        //     absolute,
-        //     skipHeight,
-        // })
+        if (window && window.XRX_DEBUG)
+            console.log("svgFromShapes", {
+                scaleX, scaleY,
+                imgWidth, imgHeight,
+                svgWidth, svgHeight,
+                absolute,
+                skipHeight,
+            })
 
         const svg = [
             '<?xml version="1.0" encoding="UTF-8" ?>',
@@ -316,14 +320,15 @@ module.exports = class XrxUtils {
         }
         svgHeight = scaleY * imgHeight
         svgWidth = scaleX * imgWidth
-        // console.log("shapesFromSvg", {
-        //     scaleX, scaleY,
-        //     imgWidth, imgHeight,
-        //     svgWidth, svgHeight,
-        //     absolute,
-        //     svgString,
-        //     svg,
-        // })
+        if (window && window.XRX_DEBUG)
+            console.log("shapesFromSvg", {
+                scaleX, scaleY,
+                imgWidth, imgHeight,
+                svgWidth, svgHeight,
+                absolute,
+                svgString,
+                svg,
+            })
 
         const shapes = []
 
@@ -439,8 +444,8 @@ module.exports = class XrxUtils {
             fillOpacity: 0.15
         }, style)
 
-        var matrix = image.getViewbox().ctmDump();
-        var trans = new this.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
+        var matrix      = image.getViewbox().ctmDump();
+        var trans       = new this.goog.math.AffineTransform(matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5]);
         var scaleX      = Math.sqrt(Math.pow(trans.getScaleX(), 2)+Math.pow(trans.getShearX(), 2));
         var scaleY      = Math.sqrt(Math.pow(trans.getScaleY(), 2)+Math.pow(trans.getShearY(), 2)); /* == scaleX, wenn keine Scherung */
         var thumbWidth  = thumb.getLayerBackground().getImage().getWidth();
