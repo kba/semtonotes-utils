@@ -1,5 +1,3 @@
-const CoordUtils = require('./coord-utils')
-
 function propToGetter(prop) { return 'get' + prop.substr(0,1).toUpperCase() + prop.substr(1) }
 function propToSetter(prop) { return 'set' + prop.substr(0,1).toUpperCase() + prop.substr(1) }
 
@@ -211,7 +209,7 @@ module.exports = class XrxUtils {
         ]
         shapes.forEach(shape => {
             if (shape instanceof this.xrx.shape.Rect
-                || (shape instanceof this.xrx.shape.Polygon && CoordUtils.isRectangle(shape.getCoords()))
+                || (shape instanceof this.xrx.shape.Polygon && this.isRectangle(shape.getCoords()))
             ) {
                 const coords = shape.getCoords()
                 var [minX, minY] = [Number.MAX_VALUE, Number.MAX_VALUE]
@@ -463,7 +461,7 @@ module.exports = class XrxUtils {
         var ausschnittRect = new this.xrx.shape.Rect(thumb);
 
         var ausschnitt = [];
-        var angle = CoordUtils.angleFromMatrix(matrix[0], matrix[1]);
+        var angle = this.angleFromMatrix(matrix[0], matrix[1]);
         /* Drehung 90 Grad rechts */
         if (angle == 270) {
             ausschnitt[0] = [(0 - bildLO[1]) * faktorY,                (bildLO[0] - ausschnittWidth) * faktorX];
@@ -499,6 +497,150 @@ module.exports = class XrxUtils {
         thumb.getLayerShape().addShapes(rect);
         this.applyStyle(rect, style)
         thumb.draw();
+    }
+
+    /**
+     * #### `angleFromMatrix(m00, m01)`
+     *
+     * Calculate the angle between two matrices.
+     *
+     */
+    angleFromMatrix(m00, m01) {
+        var deg=Math.atan2(m01*-1, m00)*180/Math.PI;
+        if(deg<0) { deg+=360; }
+        return Math.round(deg);
+    }
+
+    _bboxOfCoords(coords) {
+        var [minX, minY] = [Number.MAX_VALUE, Number.MAX_VALUE]
+        var [maxX, maxY] = [Number.MIN_VALUE, Number.MIN_VALUE]
+        for (let [x, y] of coords) {
+            ;[maxX, maxY] = [Math.max(x, maxX), Math.max(y, maxY)]
+            ;[minX, minY] = [Math.min(x, minX), Math.min(y, minY)]
+        }
+        return [[minX, minY], [maxX, maxY]]
+    }
+
+    _bboxOfShape(shape) {
+        let coords;
+        if (['Rect', 'Polygon', 'Polyline'].find(k => shape instanceof this.xrx.shape[k])) {
+            coords = shape.getCoords()
+        } else if (shape instanceof this.xrx.shape.Circle) {
+            const c = shape.getCenter()
+            const r = shape.getRadius()
+            coords = [[c[0] - r, c[1] - r], [c[0] + r, c[1] + r]]
+        } else if (shape instanceof this.xrx.shape.Ellipse) {
+            const c = shape.getCenter()
+            const rx = shape.getRadiusX()
+            const ry = shape.getRadiusY()
+            coords = [[c[0] - rx, c[1] - ry], [c[0] + rx, c[1] + ry]]
+        } else if (shape instanceof this.xrx.shape.Line) {
+            coords = [[shape.getX1(), shape.getY1()], [shape.getX2(), shape.getY2()]]
+        }
+        return this._bboxOfCoords(coords)
+    }
+
+    /**
+     * #### `boundingBox(drawingOrGroupOrShape)`
+     *
+     * TODO groups
+     *
+     */
+    boundingBox(drawingOrGroupOrShape) {
+        var [maxX, maxY, minX, minY] = [-Number.MAX_VALUE, -Number.MAX_VALUE, Number.MAX_VALUE,  Number.MAX_VALUE]
+
+        if (drawingOrGroupOrShape instanceof this.xrx.drawing.Drawing) {
+            // Drawing
+            const coords = []
+            for (let shape of drawingOrGroupOrShape.getShapes()) {
+                coords.push(...this._bboxOfShape(shape))
+            }
+            return this._bboxOfCoords(coords)
+        } else {
+            // Shape
+            return this._bboxOfShape(drawingOrGroupOrShape)
+        }
+    }
+
+    /**
+     * #### `abs2rel(coords, absval)`
+     *
+     * `coords` is a list of float tuples. Multiply every float with 1000 and divide by `absval`
+     */
+    abs2rel (coords, absval) {
+        var i;
+        var polygonrel = [];
+        if (Array.isArray(coords) && absval > 0) {
+            for (i = 0; i < coords.length; i++) {
+                var p = coords[i];
+                var px = p[0] * 1000 / absval;
+                var py = p[1] * 1000 / absval;
+                polygonrel.push([px,py]);
+            }
+        }
+        return polygonrel;
+    }
+
+    /**
+     * #### `rel2abs(coords, val)`
+     *
+     * `coords` is a list of float tuples. Multiply every float with `val` and divide by 1000
+     */
+    rel2abs (coords,absval) {
+        var i;
+        var polygonabs = [];
+        if (Array.isArray(coords) && absval > 0) {
+            for (i = 0; i < coords.length; i++) {
+                var p = coords[i];
+                var px = Math.round(p[0] * absval / 1000);
+                var py = Math.round(p[1] * absval / 1000);
+                polygonabs.push([px,py]);
+            }
+        }
+        return polygonabs;
+    }
+
+    /**
+     * #### `isRectangle(c)`
+     *
+     * Determine whether an array of coordinates is a rectangle.
+     */
+    isRectangle(c) {
+        if (!Array.isArray(c) || c.length !== 4)
+            return false
+        var xcoords = {};
+        var ycoords = {};
+        var i;
+        var oldx = 0;
+        var oldy = 0;
+        for (i = 0; i < c.length; i++) {
+            if (xcoords[c[i][0]]) {xcoords[c[i][0]]++}
+            else {xcoords[c[i][0]]=1}
+            if (ycoords[c[i][1]]) {ycoords[c[i][1]]++}
+            else {ycoords[c[i][1]]=1}
+            if (i > 0) {
+                if (c[i][0] != oldx && c[i][1] != oldy) {return false}
+            }
+            oldx = c[i][0];
+            oldy = c[i][1];
+        }
+        var size = 0, key;
+        for (key in xcoords) {
+            if (xcoords.hasOwnProperty(key)) {
+                size++;
+                if (xcoords[key] != 2) {return false}
+            }
+        }
+        if (size != 2) {return false}
+        size = 0;
+        for (key in ycoords) {
+            if (ycoords.hasOwnProperty(key)) {
+                size++;
+                if (ycoords[key] != 2) {return false}
+            }
+        }
+        if (size != 2) {return false}
+        return true;
     }
 
 }

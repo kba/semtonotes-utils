@@ -5,20 +5,20 @@
 	* [Browser](#browser)
 	* [Node.JS / CommonJS](#nodejs--commonjs)
 * [Load in Browser](#load-in-browser)
+* [Debugging](#debugging)
 * [API](#api)
 	* [XrxUtils](#xrxutils)
 		* [`applyStyle(shapes, styleDef)`](#applystyleshapes-styledef)
 			* [Example](#example)
 		* [`createDrawing(elem, width, height)`](#createdrawingelem-width-height)
-		* [`createShape(shapeType, image, options)`](#createshapeshapetype-image-options)
+		* [`createShape(shapeType, drawing, options)`](#createshapeshapetype-drawing-options)
 		* [`drawFromSvg(svgString, drawing, options)`](#drawfromsvgsvgstring-drawing-options)
 		* [`svgFromShapes(shapes, options)`](#svgfromshapesshapes-options)
 		* [`shapesFromSvg(svg, drawing, options)`](#shapesfromsvgsvg-drawing-options)
 		* [`svgFromDrawing(drawing, options)`](#svgfromdrawingdrawing-options)
 		* [`navigationThumb(thumb, image, style={})`](#navigationthumbthumb-image-style---)
-	* [CoordUtils](#coordutils)
 		* [`angleFromMatrix(m00, m01)`](#anglefrommatrixm00-m01)
-		* [`coordIIIF(polygons, imgwidth, imgheight)`](#coordiiifpolygons-imgwidth-imgheight)
+		* [`boundingBox(drawingOrGroupOrShape)`](#boundingboxdrawingorgrouporshape)
 		* [`abs2rel(coords, absval)`](#abs2relcoords-absval)
 		* [`rel2abs(coords, val)`](#rel2abscoords-val)
 		* [`isRectangle(c)`](#isrectanglec)
@@ -81,11 +81,17 @@ xrxUtils.applyStyle(rect1, {fillColor: '#aa9900'})
 #### `createDrawing(elem, width, height)`
 Create a drawing in DOMElement `elem`. Overrides goog.style.getSize with
 width/height for non-visible elements.
-#### `createShape(shapeType, image, options)`
+#### `createShape(shapeType, drawing, options)`
 Options:
-- `@param string shapeType` Shape Type, `Rectangle` or `Polygon`
-- `@param xrx.drawing.Drawing image` the SemToNotes canvas to create the shape in
-- `@param Object options` Options.
+- `@param string shapeType` Shape Type, one of
+  - `Rectangle`
+  - `Polygon`
+  - `Circle`
+  - `Ellipse`
+  - `Line`
+  - `Polyline`
+- `@param xrx.drawing.Drawing drawing` the SemToNotes canvas to create the shape in
+- `@param Object options` Options that are interpreted as setter calls, c.f. applyStyle
 #### `drawFromSvg(svgString, drawing, options)`
 Translate `svgString`, a string containing SVG, to shapes and draw them
 in `drawing`.
@@ -141,15 +147,10 @@ Generate SVG from all shapes in a drawing.
 - `@param Object options` See [`svgFromShapes`](#svgfromshapesshapes-options)
 #### `navigationThumb(thumb, image, style={})`
 Show the viewbox of `image` as a rectangle in `thumb`
-
-<!-- END-RENDER -->
-
-<!-- BEGIN-RENDER src/coord-utils.js -->
-### CoordUtils
 #### `angleFromMatrix(m00, m01)`
 Calculate the angle between two matrices.
-#### `coordIIIF(polygons, imgwidth, imgheight)`
-TODO
+#### `boundingBox(drawingOrGroupOrShape)`
+TODO groups
 #### `abs2rel(coords, absval)`
 `coords` is a list of float tuples. Multiply every float with 1000 and divide by `absval`
 #### `rel2abs(coords, val)`
@@ -161,7 +162,7 @@ Determine whether an array of coordinates is a rectangle.
 
 ## Authors
 
-* Leonhard Maylein
-* Jochen Barth
-* [Dulip Withanage](https://github.com/withanage)
 * [Konstantin Baierer](https://github.com/kba)
+* Jochen Barth
+* Leonhard Maylein
+* [Dulip Withanage](https://github.com/withanage)
