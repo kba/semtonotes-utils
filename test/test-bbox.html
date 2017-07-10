@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>semtonotes-utils test bbox</title>
+    <script type="text/javascript" src="https://unpkg.com/semtonotes-client"></script>
+    <script type="text/javascript" src="../dist/xrx-utils.js"></script>
+  </head>
+  <body>
+    <div id="xrx" width="600" height="400">
+    </div>
+
+    <script type="text/javascript">
+
+function equals(is, should, msg) {
+  if (is === should) console.log(`ok - ${is} === ${should}`)
+  else console.error(`not ok - ${is} !== ${should}`)
+}
+
+const drawing = XrxUtils.createDrawing(document.getElementById('xrx'), 600, 400)
+drawing.setModeHover()
+
+const shapes = [
+  XrxUtils.createShape('Circle', drawing, {
+    center: [550, 100],
+    radius: 60,
+  }, true),
+  XrxUtils.createShape('Rect', drawing, {
+    x: 200,
+    y: 200,
+    height: 200,
+    width: 200,
+  }, true),
+  XrxUtils.createShape('Ellipse', drawing, {
+    center: [300, 100],
+    radiusX: 100,
+    radiusY: 50,
+  }, true),
+  XrxUtils.createShape('Line', drawing, {
+    x1: 0, y1: 370,
+    x2: 70, y2: 300,
+  }, true),
+]
+
+equals(XrxUtils.boundingBox(shapes[0])[0][0], 490)
+equals(XrxUtils.boundingBox(shapes[0])[1][0], 610)
+equals(XrxUtils.boundingBox(shapes[0])[1][1], 160)
+equals(XrxUtils.boundingBox(shapes[3])[0][0], 0)
+equals(XrxUtils.boundingBox(shapes[3])[1][1], 370)
+
+const bbox = XrxUtils.boundingBox(drawing)
+equals(bbox[0][0], 0)
+equals(bbox[0][1], 40)
+equals(bbox[1][0], 610)
+equals(bbox[1][1], 400)
+
+XrxUtils.createShape('Rect', drawing, {
+  x: bbox[0][0],
+  y: bbox[0][1],
+  width: bbox[1][0] - bbox[0][0],
+  height: bbox[1][1] - bbox[0][1],
+  strokeColor: 'red',
+}, true)
+
+    </script>
+
+  </body>
+</html>
