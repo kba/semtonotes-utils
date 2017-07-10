@@ -80,18 +80,30 @@ module.exports = class XrxUtils {
     }
 
     /**
-     * #### `createShape(shapeType, image, options)`
+     * #### `createShape(shapeType, drawing, options)`
      *
      * Options:
-     * - `@param string shapeType` Shape Type, `Rectangle` or `Polygon`
-     * - `@param xrx.drawing.Drawing image` the SemToNotes canvas to create the shape in
-     * - `@param Object options` Options.
+     * - `@param string shapeType` Shape Type, one of
+     *   - `Rectangle`
+     *   - `Polygon`
+     *   - `Circle`
+     *   - `Ellipse`
+     *   - `Line`
+     *   - `Polyline`
+     * - `@param xrx.drawing.Drawing drawing` the SemToNotes canvas to create the shape in
+     * - `@param Object options` Options that are interpreted as setter calls, c.f. applyStyle
      *
      */
-    createShape(shapeType, image, options={}) {
+    createShape(shapeType, drawing, options={}, addToDrawing=false) {
         if (!(shapeType in this.xrx.shape))
             throw new Error(`No such shape ${shapeType}`)
-        return new this.xrx.shape[shapeType](image)
+        const shape = new this.xrx.shape[shapeType](drawing)
+        Object.keys(options).forEach(k => {
+            const v = Array.isArray(options[k]) ? options[k] : [options[k]]
+            shape[propToSetter(k)](...v)
+        })
+        if (addToDrawing) drawing.addShapes(shape)
+        return shape
     }
 
     /**
