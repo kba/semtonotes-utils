@@ -1,6 +1,5 @@
-{
-  "name": "semtonotes-utils",
-  "version": "0.2.0",
+{ "name": "semtonotes-utils",
+  "version": "0.2.1",
   "description": "Utility methods around SemToNotes",
   "main": "dist/xrx-utils.js",
   "repository": "github:kba/semtonotes-utils",
@@ -8,9 +7,6 @@
   "homepage": "https://github.com/kba/semtonotes-utils/tree/master/anno-config#readme",
   "author": "kba",
   "license": "MIT",
-  "peerDependencies": {
-    "semtonotes-client": "0.2.3"
-  },
   "devDependencies": {
     "babel-core": "^6.24.1",
     "babel-loader": "^7.0.0",
