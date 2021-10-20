@@ -34,7 +34,16 @@
 webpack -p
 ```
 
-Then include the built library in `./dist` and semtonotes as `window.xrx`, either with the official release or `semtonotes-client`
+Then include the built library in `./dist` and semtonotes as `window.xrx`,
+either with the official release or a suitable version of `semtonotes-client`:
+
+#### Versions compatibility table
+
+| s…-utils          | s…-client             |
+|------------------ |---------------------- |
+| 0.2.1 to current  | `^0.2.3`              |
+| 0.0.1 — 0.2.0     | see peerDependencies  |
+
 
 ### Node.JS / CommonJS
 

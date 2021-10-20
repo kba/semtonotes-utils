@@ -1,5 +1,5 @@
 { "name": "semtonotes-utils",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Utility methods around SemToNotes",
   "main": "dist/xrx-utils.js",
   "repository": "github:kba/semtonotes-utils",
